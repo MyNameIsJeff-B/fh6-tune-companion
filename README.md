@@ -22,6 +22,9 @@ upgradeplan, leidt verstelbare tuningvelden af uit de geselecteerde onderdelen e
 markeert onzekerheden. De bronkeuzes en beperkingen staan in
 `docs/BUILD_GUIDE_RESEARCH.md`.
 
+Voor volgende ontwikkelsessies staan de bindende werkinstructies in `AGENTS.md`
+en de actuele status en roadmap in `docs/PROJECT_HANDOFF.md`.
+
 ## Starten
 
 ```powershell
@@ -32,8 +35,9 @@ npm.cmd run dev
 ## Controle
 
 ```powershell
+npm.cmd run lint
 npm.cmd test
-npm.cmd run build
+npm.cmd run build -- --mode pages
 ```
 
 ## Model
