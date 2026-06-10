@@ -1,0 +1,19 @@
+{
+  "name": "FH6 Tune Companion",
+  "short_name": "FH6 Tune",
+  "description": "Persoonlijke, offline FH6 tuning companion.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#050505",
+  "theme_color": "#050505",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "./icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
