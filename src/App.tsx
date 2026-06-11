@@ -28,6 +28,7 @@ import {
   ENGINE_VERSION,
   TUNE_MODES,
 } from "./domain/defaults";
+import { SEASONS } from "./domain/seasons";
 import packageJson from "../package.json";
 import type {
   Capability,
@@ -61,6 +62,7 @@ const compounds = [
   "Race Semi-Slick",
   "Race Slick",
   "Rally",
+  "Off-Road",
   "Drift",
   "Snow",
   "Drag",
@@ -93,7 +95,7 @@ const classForPi = (pi: number) => {
   if (pi <= 800) return "A";
   if (pi <= 900) return "S1";
   if (pi <= 998) return "S2";
-  return "X";
+  return "R";
 };
 
 const convertInputUnits = (input: TuneInput, next: UnitSystem): TuneInput => {
@@ -651,6 +653,20 @@ function App() {
               ))}
             </div>
             <div className="field-grid">
+              <Field label="Seizoen">
+                <select
+                  value={input.season ?? "Summer"}
+                  onChange={(event) =>
+                    patch("season", event.target.value as TuneInput["season"])
+                  }
+                >
+                  {SEASONS.map((season) => (
+                    <option key={season.id} value={season.id}>
+                      {season.id}
+                    </option>
+                  ))}
+                </select>
+              </Field>
               <Field label="Ondergrond">
                 <select
                   value={input.surface}

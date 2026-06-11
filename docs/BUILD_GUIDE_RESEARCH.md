@@ -16,6 +16,17 @@ maakt strategie en volgorde autospecifiek, maar is nadrukkelijk geen exacte
 upgradecatalogus. Bronaliassen worden conservatief gematcht; onzekere varianten
 vallen terug op het algemene profiel.
 
+De uitvoerbare buildstappen volgen nu de gekozen discipline. Voor Race, Touge en
+All-round wordt de autospecifieke profielvolgorde vertaald naar de zes zichtbare
+stappen; Rally, Drag, Drift, Wangan en Rain hebben een disciplinevolgorde die
+voorrang krijgt op een mogelijk conflicterend autoprofiel.
+
+Seizoen is een aparte context naast ondergrond. FH6 bevestigt Spring, Summer,
+Autumn en Winter, met hete zomers, sneeuwrijke winters en een speelwereld die per
+seizoen verandert. De app forceert niet dat iedere herfstrit nat of iedere
+winterrit besneeuwd is. `Surface` blijft daarom apart staan; Snow Tires worden
+alleen gekozen wanneer de gebruiker ook daadwerkelijk `Snow` selecteert.
+
 FH6 heeft voor zover publiek verifieerbaar geen officiële complete API voor:
 
 - upgrades per auto;
@@ -42,6 +53,10 @@ expliciete waarschuwing.
   versnelling en voertuigidentiteit via een lokale UDP-stream kan uitsturen. De
   huidige sprint bouwt nog geen telemetrie-import, maar houdt het invoermodel
   daarvoor open.
+- [Xbox Wire: FH6 Japan Setting and Changing Seasons](https://news.xbox.com/en-us/2025/09/25/forza-horizon-6-japan-setting-2026/)
+  bevestigt de vier seizoenen, hete zomers, sneeuwrijke winters en dat seizoenen
+  de speelwereld merkbaar veranderen. De bron bevestigt niet dat ieder event
+  binnen een seizoen hetzelfde weer heeft.
 
 ### Calculators en gidsen
 
@@ -57,8 +72,16 @@ expliciete waarschuwing.
   een testrit en trek circa 100-200 RPM af. De app toont dit als invoerhulp.
 - [ForzaFire FH6 Platform & Handling](https://www.forzafire.com/guides/forza-horizon-6-platform-and-handling-tuning-guide)
   levert de gebruikte conservatieve ARB-bereiken per aandrijving en de
-  klasse-afhankelijke spring-sliderpercentages. De intern tegenstrijdige
-  ARB-formule verderop in dezelfde gids is bewust niet overgenomen.
+  klasse-afhankelijke spring-sliderpercentages. De gids bevestigt ook de nieuwe
+  `R`-topklasse in plaats van `X`. De intern tegenstrijdige ARB-formule verderop
+  in dezelfde gids is bewust niet overgenomen.
+- [ForzaFire FH6 Tires & Rims](https://www.forzafire.com/guides/forza-horizon-6-tires-and-rims-tuning-guide)
+  onderscheidt Rally Tires voor Dirt van Off-Road Tires voor Cross Country. De
+  Build Guide gebruikt dat onderscheid, maar blijft beschikbaarheid en PI-kosten
+  per auto in de game laten bevestigen.
+  Dezelfde gids onderbouwt dat hogere druk warmteopbouw afremt en lagere druk
+  koude banden sneller helpt opwarmen. De seizoenscorrectie blijft daarom beperkt
+  tot `0,05 bar` (`0,7 psi`) op de droge weg-baseline.
 - [QuickTune Pro](https://forzaquicktune.com/guides/) laat zien dat een
   build-assistent alle gekozen upgrades moet meenemen en ongeschikte combinaties
   moet signaleren. De publieke informatie bevestigt op 10 juni 2026 nog geen
@@ -96,12 +119,15 @@ expliciete waarschuwing.
 3. Prioriteer instelbaarheid, tractie en balans voordat vermogen wordt toegevoegd.
 4. Laat bandenbreedte aansluiten op de aangedreven as.
 5. Gebruik gewichtsreductie als brede prestatiewinst, maar controleer de PI-efficiëntie.
-6. Kies onderstel op ondergrond: race voor asfalt, rally voor losse ondergrond,
-   drift voor drift.
+6. Kies onderstel en banden op discipline: race voor asfalt, Rally Tires en
+   Rally suspension voor Dirt, Off-Road Tires en Off-Road suspension voor Cross
+   Country, en drift-onderdelen voor Drift.
 7. Voeg remmen eerder toe bij zware, snelle of controlegerichte builds.
 8. Voeg aero pas toe als high-speed bochtengrip de topsnelheidsstraf waard is.
 9. Behandel engine- en drivetrain-swaps als een nieuwe build met lagere zekerheid.
 10. Controleer de uiteindelijke waarden altijd opnieuw in FH6.
+11. Gebruik seizoen als verwachte context, niet als garantie voor het exacte
+    eventweer; ondergrond en eventtype blijven leidend.
 
 ## Niet overgenomen
 

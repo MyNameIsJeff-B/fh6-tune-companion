@@ -1,6 +1,7 @@
 import { DEFAULT_INPUT } from "../domain/defaults";
 import type { DriveType, TuneMode } from "../domain/types";
 import {
+  BUILD_CLASS_OPTIONS,
   CLASS_CAPS,
   applyBuildPlan,
   defaultBuildConfig,
@@ -69,7 +70,7 @@ describe("build guide", () => {
   );
 
   it("uses class-sensitive road compounds", () => {
-    const compounds = Object.keys(CLASS_CAPS).map((targetClass) => {
+    const compounds = BUILD_CLASS_OPTIONS.map((targetClass) => {
       const config = {
         ...defaultBuildConfig(DEFAULT_INPUT),
         targetClass,
@@ -88,6 +89,61 @@ describe("build guide", () => {
       "Race Slick",
       "Race Slick",
     ]);
+  });
+
+  it("keeps Rain builds wet-capable in high classes", () => {
+    const config = {
+      ...defaultBuildConfig(DEFAULT_INPUT),
+      tuneMode: "Rain" as const,
+      targetClass: "R",
+      targetPi: 999,
+    };
+    const tire = generateBuildPlan(DEFAULT_INPUT, config).stages
+      .find((stage) => stage.id === "tires")
+      ?.upgrades.find((upgrade) => upgrade.tireCompound);
+    expect(tire?.tireCompound).toBe("Race Semi-Slick");
+  });
+
+  it("keeps winter and snow-event intent separate", () => {
+    const winterRoad = generateBuildPlan(DEFAULT_INPUT, {
+      ...defaultBuildConfig(DEFAULT_INPUT),
+      season: "Winter",
+      surface: "Road",
+    });
+    const winterSnow = generateBuildPlan(DEFAULT_INPUT, {
+      ...defaultBuildConfig(DEFAULT_INPUT),
+      season: "Winter",
+      surface: "Snow",
+    });
+    expect(
+      winterRoad.stages
+        .find((stage) => stage.id === "tires")
+        ?.upgrades.find((upgrade) => upgrade.tireCompound)?.tireCompound,
+    ).not.toBe("Snow");
+    expect(
+      winterSnow.stages
+        .find((stage) => stage.id === "tires")
+        ?.upgrades.find((upgrade) => upgrade.tireCompound)?.tireCompound,
+    ).toBe("Snow");
+  });
+
+  it("uses R as the current top class and migrates legacy X builds", () => {
+    const input = {
+      ...DEFAULT_INPUT,
+      carClass: "R",
+      pi: 999,
+      buildGuide: {
+        version: "build-guide-0.3.0",
+        focus: "balanced" as const,
+        targetClass: "X",
+        targetPi: 999,
+        selectedUpgradeIds: [],
+        warnings: [],
+        valuesConfirmed: false,
+      },
+    };
+    expect(defaultBuildConfig(input).targetClass).toBe("R");
+    expect(defaultBuildConfig(input).targetPi).toBe(999);
   });
 
   it("applies selected upgrade capabilities without exposing missing parts", () => {
@@ -223,5 +279,29 @@ describe("build guide", () => {
     expect(plan.stages.find((stage) => stage.id === "chassis")?.upgrades[0].id).toBe(
       "offroad-suspension",
     );
+    expect(
+      plan.stages
+        .find((stage) => stage.id === "tires")
+        ?.upgrades.find((upgrade) => upgrade.tireCompound)?.tireCompound,
+    ).toBe("Off-Road");
+    expect(plan.stages.slice(0, 3).map((stage) => stage.id)).toEqual([
+      "tires",
+      "chassis",
+      "foundation",
+    ]);
+  });
+
+  it("turns a car profile order into the active stage order", () => {
+    const plan = generateBuildPlan(
+      DEFAULT_INPUT,
+      defaultBuildConfig(DEFAULT_INPUT),
+      RX7_PROFILE,
+    );
+    expect(plan.stages.slice(0, 4).map((stage) => stage.id)).toEqual([
+      "tires",
+      "chassis",
+      "weight",
+      "foundation",
+    ]);
   });
 });

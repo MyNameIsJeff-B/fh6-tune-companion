@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
+  BUILD_CLASS_OPTIONS,
   CLASS_CAPS,
   applyBuildPlan,
   defaultBuildConfig,
@@ -33,7 +34,8 @@ import type {
   BuildUpgradeId,
 } from "../build-guide/types";
 import { TUNE_MODES } from "../domain/defaults";
-import type { Surface, TuneInput, TuneMode } from "../domain/types";
+import { SEASONS, seasonProfile } from "../domain/seasons";
+import type { Season, Surface, TuneInput, TuneMode } from "../domain/types";
 import { Field, Segmented } from "./Field";
 
 const priorityLabel: Record<BuildPriority, string> = {
@@ -67,7 +69,7 @@ export function BuildGuide({
     input.buildGuide?.selectedUpgradeIds ??
     defaultSelectedUpgrades(generateBuildPlan(input, defaultBuildConfig(input))),
   );
-  const [openStage, setOpenStage] = useState("foundation");
+  const [openStage, setOpenStage] = useState("tires");
   const [showSources, setShowSources] = useState(false);
   const [profiles, setProfiles] = useState<BuildCarProfile[]>([]);
   const [profileError, setProfileError] = useState("");
@@ -151,7 +153,7 @@ export function BuildGuide({
               <div>
                 <span>
                   <ListChecks size={15} />
-                  Suggested Order
+                  Car Baseline
                 </span>
                 <ol>
                   {profile.order.slice(0, 5).map((item) => (
@@ -190,7 +192,7 @@ export function BuildGuide({
                 });
               }}
             >
-              {Object.keys(CLASS_CAPS).map((item) => (
+              {BUILD_CLASS_OPTIONS.map((item) => (
                 <option key={item}>{item}</option>
               ))}
             </select>
@@ -231,6 +233,20 @@ export function BuildGuide({
               <option value="Dirt">Dirt</option>
               <option value="Mixed">Mixed</option>
               <option value="Snow">Snow</option>
+            </select>
+          </Field>
+          <Field label="Season">
+            <select
+              value={config.season}
+              onChange={(event) =>
+                changeConfig({ season: event.target.value as Season })
+              }
+            >
+              {SEASONS.map((season) => (
+                <option key={season.id} value={season.id}>
+                  {season.id}
+                </option>
+              ))}
             </select>
           </Field>
         </div>
@@ -283,6 +299,15 @@ export function BuildGuide({
         </span>
         <span>
           PI Budget: <b>{plan.piBudget}</b>
+        </span>
+      </div>
+
+      <div className="build-warning">
+        <Info />
+        <span>
+          <strong>{config.season} Conditions</strong>
+          {seasonProfile(config.season).conditions}{" "}
+          {seasonProfile(config.season).guidance}
         </span>
       </div>
 

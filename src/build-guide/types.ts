@@ -1,6 +1,7 @@
 import type {
   BuildCapabilities,
   DriveType,
+  Season,
   Surface,
   TuneMode,
 } from "../domain/types";
@@ -24,6 +25,7 @@ export type BuildUpgradeId =
   | "semi-slick-tires"
   | "slick-tires"
   | "rally-tires"
+  | "offroad-tires"
   | "snow-tires"
   | "drag-tires"
   | "drift-tires"
@@ -46,6 +48,7 @@ export type BuildUpgradeId =
 
 export interface BuildGuideConfig {
   tuneMode: TuneMode;
+  season: Season;
   surface: Surface;
   focus: BuildFocus;
   targetClass: string;
@@ -117,6 +120,7 @@ export interface AppliedBuildGuide {
   targetClass: string;
   targetPi: number;
   tuneMode?: TuneMode;
+  season?: Season;
   surface?: Surface;
   keepStockEngine?: boolean;
   keepStockDrivetrain?: boolean;

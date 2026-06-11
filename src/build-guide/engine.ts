@@ -13,8 +13,9 @@ import type {
   BuildUpgrade,
   BuildUpgradeId,
 } from "./types";
+import { seasonProfile } from "../domain/seasons";
 
-export const BUILD_GUIDE_VERSION = "build-guide-0.3.0";
+export const BUILD_GUIDE_VERSION = "build-guide-0.3.1";
 
 export const CLASS_CAPS: Record<string, number> = {
   D: 500,
@@ -23,8 +24,12 @@ export const CLASS_CAPS: Record<string, number> = {
   A: 800,
   S1: 900,
   S2: 998,
+  R: 999,
+  // Accepted for old saved builds and imports; FH6 now labels the top class R.
   X: 999,
 };
+
+export const BUILD_CLASS_OPTIONS = ["D", "C", "B", "A", "S1", "S2", "R"];
 
 const source = ["forzatune-guide", "quicktune-guide", "optn", "in-game"];
 
@@ -55,6 +60,7 @@ const stage = (
 
 const tireChoice = (
   config: BuildGuideConfig,
+  profile?: BuildCarProfile,
 ): Pick<BuildUpgrade, "id" | "name" | "tireCompound" | "detail"> => {
   if (config.surface === "Snow") {
     return {
@@ -78,6 +84,30 @@ const tireChoice = (
       name: "Drift compound",
       tireCompound: "Drift",
       detail: "Prioritise predictable slip angle and tire temperature.",
+    };
+  }
+  if (
+    config.tuneMode === "Rain" &&
+    !["D", "C", "B"].includes(config.targetClass)
+  ) {
+    return {
+      id: "semi-slick-tires",
+      name: "Race Semi-Slick",
+      tireCompound: "Race Semi-Slick",
+      detail: "Retains useful wet-weather capability that Race Slicks do not provide.",
+    };
+  }
+  if (
+    profile?.preset === "cross_country_a_s1" &&
+    (config.surface === "Dirt" ||
+      config.surface === "Mixed" ||
+      config.tuneMode === "Rally")
+  ) {
+    return {
+      id: "offroad-tires",
+      name: "Off-Road Tires",
+      tireCompound: "Off-Road",
+      detail: "Cross Country needs impact absorption and traction on rough terrain.",
     };
   }
   if (config.surface === "Dirt" || config.surface === "Mixed" || config.tuneMode === "Rally") {
@@ -158,7 +188,7 @@ const weightUpgrades = (targetClass: string): BuildUpgrade[] => {
       { confidence: 0.82, sourceIds: ["forzatune-guide", "optn", "in-game"] },
     ),
   ];
-  if (["A", "S1", "S2", "X"].includes(targetClass)) {
+  if (["A", "S1", "S2", "R", "X"].includes(targetClass)) {
     items.push(
       upgrade(
         "weight-2",
@@ -168,7 +198,7 @@ const weightUpgrades = (targetClass: string): BuildUpgrade[] => {
       ),
     );
   }
-  if (["S1", "S2", "X"].includes(targetClass)) {
+  if (["S1", "S2", "R", "X"].includes(targetClass)) {
     items.push(
       upgrade(
         "weight-3",
@@ -184,14 +214,18 @@ const weightUpgrades = (targetClass: string): BuildUpgrade[] => {
 
 export function defaultBuildConfig(input: TuneInput): BuildGuideConfig {
   const saved = input.buildGuide;
+  const savedTargetClass = saved?.targetClass === "X" ? "R" : saved?.targetClass;
   const targetClass =
-    saved?.targetClass && saved.targetClass in CLASS_CAPS
-      ? saved.targetClass
+    savedTargetClass && savedTargetClass in CLASS_CAPS
+      ? savedTargetClass
       : input.carClass in CLASS_CAPS
-        ? input.carClass
+        ? input.carClass === "X"
+          ? "R"
+          : input.carClass
         : "A";
   return {
     tuneMode: saved?.tuneMode ?? input.tuneMode,
+    season: saved?.season ?? input.season ?? "Summer",
     surface: saved?.surface ?? input.surface,
     focus: saved?.focus ?? "balanced",
     targetClass,
@@ -213,7 +247,7 @@ export function generateBuildPlan(
     profile?.avoid.some((item) =>
       terms.some((term) => item.toLowerCase().includes(term)),
     ) ?? false;
-  const tire = tireChoice(config);
+  const tire = tireChoice(config, profile);
   const offroad =
     config.surface === "Dirt" ||
     config.surface === "Mixed" ||
@@ -222,7 +256,7 @@ export function generateBuildPlan(
   const transmission =
     ["Drag", "Drift", "Wangan"].includes(config.tuneMode) ||
     ["acceleration", "speed"].includes(config.focus) ||
-    ["S1", "S2", "X"].includes(config.targetClass)
+    ["S1", "S2", "R", "X"].includes(config.targetClass)
       ? upgrade(
           "race-transmission",
           "Race transmission",
@@ -274,6 +308,10 @@ export function generateBuildPlan(
         capabilityPatch: { tires: true },
         tireCompound: tire.tireCompound,
         confidence: 0.78,
+        sourceIds:
+          tire.id === "offroad-tires"
+            ? ["forzafire-tires", "in-game"]
+            : undefined,
       }),
       widthUpgrade(input.driveType),
       ...(config.focus === "grip" && !offroad
@@ -318,7 +356,7 @@ export function generateBuildPlan(
       profileRequires("offroad_suspension") ||
       profileRequires("rally_suspension") ||
       config.focus === "control" ||
-      ["S1", "S2", "X"].includes(config.targetClass)
+      ["S1", "S2", "R", "X"].includes(config.targetClass)
       ? "recommend"
       : "optional",
     [
@@ -344,7 +382,7 @@ export function generateBuildPlan(
         "Most useful for heavy, fast cars and tracks with hard braking zones.",
         config.focus === "control" ||
           profileRequires("race_brakes") ||
-          ["S1", "S2", "X"].includes(config.targetClass)
+          ["S1", "S2", "R", "X"].includes(config.targetClass)
           ? "recommend"
           : "optional",
         { capabilityPatch: { brakes: true }, confidence: 0.72 },
@@ -399,7 +437,7 @@ export function generateBuildPlan(
     !profileAvoids("heavy aero", "circuit aero", "no aero") &&
     !offroad &&
     config.tuneMode !== "Drag" &&
-    ["A", "S1", "S2", "X"].includes(config.targetClass);
+    ["A", "S1", "S2", "R", "X"].includes(config.targetClass);
   const aero = stage(
     "aero",
     "Aero",
@@ -429,6 +467,8 @@ export function generateBuildPlan(
     "Confirm actual part availability and PI cost in FH6.",
     "After installation, enter the actual weight, weight distribution, and PI.",
   ];
+  const season = seasonProfile(config.season);
+  warnings.push(`${season.id}: ${season.guidance}`);
   if (!config.keepStockDrivetrain) {
     warnings.push("A drivetrain swap changes the balance significantly; validate it as a new build.");
   }
@@ -438,6 +478,61 @@ export function generateBuildPlan(
   if (profile?.risks.includes("needs_in_game_weight_for_exact_springs")) {
     warnings.push("This car type needs confirmed in-game weight and spring ranges for exact spring values.");
   }
+
+  const weight = stage(
+    "weight",
+    "Weight",
+    "Lower mass improves nearly every performance area.",
+    "recommend",
+    weightUpgrades(config.targetClass),
+  );
+  const stages = [foundation, tires, weight, chassis, power, aero];
+  const genericOrder: BuildStage["id"][] = [
+    "tires",
+    "foundation",
+    "weight",
+    "chassis",
+    "power",
+    "aero",
+  ];
+  const disciplineOrder: Partial<Record<TuneInput["tuneMode"], BuildStage["id"][]>> = {
+    Rally: ["tires", "chassis", "foundation", "weight", "power", "aero"],
+    Drag: ["power", "tires", "foundation", "weight", "chassis", "aero"],
+    Drift: ["tires", "foundation", "chassis", "weight", "power", "aero"],
+    Wangan: ["power", "foundation", "tires", "aero", "chassis", "weight"],
+    Rain: ["tires", "chassis", "weight", "foundation", "power", "aero"],
+  };
+  const profileOrder = profile?.order.flatMap((item): BuildStage["id"][] => {
+    const value = item.toLowerCase();
+    if (value.includes("tire") || value.includes("slick")) return ["tires"];
+    if (
+      value.includes("brake") ||
+      value.includes("suspension") ||
+      value.includes("spring") ||
+      value.includes("arb")
+    ) return ["chassis"];
+    if (value.includes("weight")) return ["weight"];
+    if (
+      value.includes("diff") ||
+      value.includes("gear") ||
+      value.includes("transmission") ||
+      value.includes("drivetrain")
+    ) return ["foundation"];
+    if (
+      value.includes("power") ||
+      value.includes("engine") ||
+      value.includes("turbo")
+    ) return ["power"];
+    if (value.includes("aero")) return ["aero"];
+    return [];
+  });
+  const requestedOrder =
+    disciplineOrder[config.tuneMode] ??
+    (profileOrder?.length ? profileOrder : genericOrder);
+  const stageOrder = [...new Set([...requestedOrder, ...genericOrder])];
+  const orderedStages = stageOrder
+    .map((id) => stages.find((item) => item.id === id))
+    .filter((item): item is BuildStage => Boolean(item));
 
   return {
     version: BUILD_GUIDE_VERSION,
@@ -456,7 +551,7 @@ export function generateBuildPlan(
     ),
     warnings,
     profile,
-    stages: [foundation, tires, stage("weight", "Weight", "Lower mass improves nearly every performance area.", "recommend", weightUpgrades(config.targetClass)), chassis, power, aero],
+    stages: orderedStages,
   };
 }
 
@@ -501,6 +596,7 @@ export function applyBuildPlan(
     targetClass: plan.config.targetClass,
     targetPi: plan.config.targetPi,
     tuneMode: plan.config.tuneMode,
+    season: plan.config.season,
     surface: plan.config.surface,
     keepStockEngine: plan.config.keepStockEngine,
     keepStockDrivetrain: plan.config.keepStockDrivetrain,
@@ -513,6 +609,7 @@ export function applyBuildPlan(
   return {
     ...input,
     tuneMode: plan.config.tuneMode,
+    season: plan.config.season,
     surface: plan.config.surface,
     carClass: plan.config.targetClass,
     pi: plan.config.targetPi,

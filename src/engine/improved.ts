@@ -66,16 +66,26 @@ export function calculateImproved(input: TuneInput): TuneResult {
     corrections.push("FWD acceleratieslot iets geopend voor minder exit-onderstuur.");
   }
 
-  if (input.tireCompound === "Rally" && input.surface !== "Road") {
+  if (["Rally", "Off-Road"].includes(input.tireCompound) && input.surface !== "Road") {
     change(result.sections, "pressure-front", (v) => v - (input.unitSystem === "metric" ? 0.25 : 3.5), 0.8);
     change(result.sections, "pressure-rear", (v) => v - (input.unitSystem === "metric" ? 0.25 : 3.5), 0.8);
-    corrections.push("Rallybandenspanning verlaagd voor losse ondergrond.");
+    corrections.push("Offroad-bandenspanning verlaagd voor losse ondergrond.");
   }
 
   if (input.tuneMode === "Drag") {
     change(result.sections, "pressure-front", () => (input.unitSystem === "metric" ? 3.45 : 50), 0.72);
     change(result.sections, "pressure-rear", (v) => Math.min(v, input.unitSystem === "metric" ? 1.45 : 21), 0.74);
     corrections.push("Dragbanden aangepast naar lagere achterdruk en lagere rolweerstand voor.");
+  }
+  if (input.season === "Summer" && input.surface === "Road") {
+    corrections.push(
+      "Summer baseline uses slightly higher pressure to slow heat buildup.",
+    );
+  }
+  if (input.season === "Winter" && input.surface !== "Snow") {
+    corrections.push(
+      "Winter baseline uses slightly lower pressure to help cold tires warm up.",
+    );
   }
 
   if (input.feelStability > 60) {
@@ -118,6 +128,24 @@ export function calculateImproved(input: TuneInput): TuneResult {
   ) {
     warnings.push(
       "Veerpercentages voor losse ondergrond zijn voorlopig een voorzichtige wegbaseline; valideer veerweg en sliderstand in FH6.",
+    );
+  }
+  if (
+    input.season === "Winter" &&
+    input.surface !== "Snow" &&
+    input.tireCompound === "Snow"
+  ) {
+    warnings.push(
+      "Snow Tires are only appropriate when the selected event actually contains snow or ice.",
+    );
+  }
+  if (
+    ["Spring", "Autumn"].includes(input.season) &&
+    input.surface === "Road" &&
+    input.tireCompound === "Race Slick"
+  ) {
+    warnings.push(
+      "This seasonal build prioritises dry grip; switch to Semi-Slick if the event forecast is wet.",
     );
   }
   if (input.inputMode === "quick") {

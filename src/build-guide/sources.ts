@@ -22,6 +22,16 @@ export const BUILD_SOURCES: BuildSource[] = [
     verified: "2026-06-10",
   },
   {
+    id: "fh6-official-seasons",
+    title: "FH6 Japan Setting and Changing Seasons",
+    publisher: "Xbox Wire / Playground Games",
+    url: "https://news.xbox.com/en-us/2025/09/25/forza-horizon-6-japan-setting-2026/",
+    kind: "official",
+    use: "Confirms Spring, Summer, Autumn, Winter, hot summers, snowy winters, and meaningful seasonal world changes.",
+    limitation: "Does not say that every event in a season has the same weather or road surface.",
+    verified: "2026-06-11",
+  },
+  {
     id: "forzatune-guide",
     title: "Fully Updated Forza Tuning Guide",
     publisher: "ForzaTune",
@@ -40,6 +50,16 @@ export const BUILD_SOURCES: BuildSource[] = [
     use: "FH6 support, required Race upgrades, and workflow comparison.",
     limitation: "FH6 is listed as beta and the formulas are not public.",
     verified: "2026-06-10",
+  },
+  {
+    id: "forzafire-tires",
+    title: "FH6 Tires & Rims Tuning Guide",
+    publisher: "ForzaFire",
+    url: "https://www.forzafire.com/guides/forza-horizon-6-tires-and-rims-tuning-guide",
+    kind: "community",
+    use: "Separates Rally Tires for Dirt from Off-Road Tires for Cross Country.",
+    limitation: "General FH6 guidance; exact PI value and availability still vary by car.",
+    verified: "2026-06-11",
   },
   {
     id: "quicktune-guide",

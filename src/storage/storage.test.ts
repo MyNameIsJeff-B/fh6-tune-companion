@@ -31,6 +31,7 @@ describe("local storage compatibility", () => {
     });
     const legacyInput = { ...legacy.input } as Record<string, unknown>;
     delete legacyInput.springSliderRange;
+    delete legacyInput.season;
     legacyInput.peakTorqueRpm = 5500;
     const legacyTune = {
       ...legacy,
@@ -40,5 +41,6 @@ describe("local storage compatibility", () => {
 
     expect(() => importTunes(JSON.stringify(legacyTune))).not.toThrow();
     expect(loadSavedTunes()).toHaveLength(1);
+    expect(loadSavedTunes()[0].input.season).toBe("Summer");
   });
 });

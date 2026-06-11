@@ -232,13 +232,27 @@ export function calculateBaseline(input: TuneInput): TuneResult {
     pressureFront -= metric ? 0.1 : 1.5;
     pressureRear -= metric ? 0.1 : 1.5;
   }
-  if (input.tireCompound === "Rally") {
+  if (["Rally", "Off-Road"].includes(input.tireCompound)) {
     pressureFront -= metric ? 0.15 : 2;
     pressureRear -= metric ? 0.15 : 2;
   }
   if (input.tireCompound === "Snow") {
     pressureFront -= metric ? 0.2 : 3;
     pressureRear -= metric ? 0.2 : 3;
+  }
+  if (input.surface !== "Snow" && input.tuneMode !== "Drag") {
+    const seasonalDelta =
+      input.season === "Summer"
+        ? metric
+          ? 0.05
+          : 0.7
+        : input.season === "Winter"
+          ? metric
+            ? -0.05
+            : -0.7
+          : 0;
+    pressureFront += seasonalDelta;
+    pressureRear += seasonalDelta;
   }
   pressureFront = round(pressureFront, metric ? 2 : 1);
   pressureRear = round(pressureRear, metric ? 2 : 1);

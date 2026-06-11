@@ -5,7 +5,14 @@ const KEY = "fh6-tune-companion:v1:tunes";
 export function loadSavedTunes(): TuneResult[] {
   try {
     const value = localStorage.getItem(KEY);
-    return value ? (JSON.parse(value) as TuneResult[]) : [];
+    const tunes = value ? (JSON.parse(value) as TuneResult[]) : [];
+    return tunes.map((item) => ({
+      ...item,
+      input: {
+        ...item.input,
+        season: item.input.season ?? "Summer",
+      },
+    }));
   } catch {
     return [];
   }
@@ -31,7 +38,15 @@ export function importTunes(json: string): TuneResult[] {
     throw new Error("Dit bestand bevat geen geldige FH6-tunes.");
   }
   const byId = new Map(loadSavedTunes().map((item) => [item.id, item]));
-  incoming.forEach((item) => byId.set(item.id, item));
+  incoming.forEach((item) =>
+    byId.set(item.id, {
+      ...item,
+      input: {
+        ...item.input,
+        season: item.input.season ?? "Summer",
+      },
+    }),
+  );
   const next = [...byId.values()].slice(0, 50);
   localStorage.setItem(KEY, JSON.stringify(next));
   return next;
@@ -54,7 +69,7 @@ export function exportTune(result: TuneResult) {
 export function tuneAsText(result: TuneResult) {
   const lines = [
     `${result.input.year} ${result.input.make} ${result.input.model}`,
-    `${result.input.carClass} ${result.input.pi} · ${result.input.driveType} · ${result.input.tuneMode}`,
+    `${result.input.carClass} ${result.input.pi} · ${result.input.driveType} · ${result.input.tuneMode} · ${result.input.season ?? "Summer"}`,
     `Model ${result.engineVersion} · vertrouwen ${Math.round(result.confidence * 100)}%`,
     "",
   ];

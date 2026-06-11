@@ -11,6 +11,7 @@ export type TuneMode =
   | "General"
   | "Rain";
 export type Surface = "Road" | "Dirt" | "Snow" | "Mixed";
+export type Season = "Spring" | "Summer" | "Autumn" | "Winter";
 export type UnitSystem = "metric" | "imperial";
 export type InputMode = "quick" | "advanced";
 
@@ -67,6 +68,7 @@ export interface TuneInput {
   year: string;
   driveType: DriveType;
   tuneMode: TuneMode;
+  season: Season;
   surface: Surface;
   carClass: string;
   pi: number;

@@ -36,6 +36,18 @@ describe("tuning engine", () => {
     expect(result.confidence).toBeGreaterThan(0.3);
   });
 
+  it("adjusts road tire pressure conservatively for summer and winter", () => {
+    const summer = calculateBaseline({ ...DEFAULT_INPUT, season: "Summer" });
+    const winter = calculateBaseline({ ...DEFAULT_INPUT, season: "Winter" });
+    const pressure = (result: ReturnType<typeof calculateBaseline>) =>
+      Number(
+        result.sections
+          .find((section) => section.id === "tires")
+          ?.values.find((value) => value.key === "pressure-front")?.value,
+      );
+    expect(pressure(summer) - pressure(winter)).toBeCloseTo(0.1, 2);
+  });
+
   it("never exposes unavailable settings", () => {
     const result = calculateImproved({
       ...DEFAULT_INPUT,
@@ -181,7 +193,7 @@ describe("tuning engine", () => {
     expect(
       advanced.sections.find((item) => item.id === "gearing")?.values.length,
     ).toBeGreaterThan(1);
-    expect(advanced.engineVersion).toBe("fh6-companion-0.3.0");
+    expect(advanced.engineVersion).toBe("fh6-companion-0.3.1");
   });
 
   it("creates an immutable diagnosis revision", () => {

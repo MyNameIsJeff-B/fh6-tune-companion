@@ -1,6 +1,6 @@
 import type { BuildCapabilities, TuneInput, TuneMode } from "./types";
 
-export const ENGINE_VERSION = "fh6-companion-0.3.0";
+export const ENGINE_VERSION = "fh6-companion-0.3.1";
 export const BASELINE_VERSION = "tunelab-1.7.0";
 export const CATALOG_VERSION = "tunelab-v7+fh6-local-2026-06-10";
 
@@ -40,6 +40,7 @@ export const DEFAULT_INPUT: TuneInput = {
   year: "1992",
   driveType: "RWD",
   tuneMode: "Race",
+  season: "Summer",
   surface: "Road",
   carClass: "A",
   pi: 800,

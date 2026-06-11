@@ -4,13 +4,18 @@ Laatst bijgewerkt: 11 juni 2026
 
 ## Huidige status
 
-FH6 Tune Companion `0.4.0` is een werkende mobiele PWA met:
+FH6 Tune Companion `0.4.1` is een werkende mobiele PWA met:
 
 - auto zoeken of handmatig invoeren;
 - Engelstalige Build Guide met per-auto profiel, discipline, ondergrond,
   aandrijving, klasse en focus;
 - 618 reproduceerbaar gegenereerde buildprofielen met upgradevolgorde en
   vermijd-lijst;
+- discipline- en profielgestuurde actieve buildstappen;
+- actuele `R`-topklasse met migratie van oude opgeslagen `X`-builds;
+- afzonderlijke Rally Tires voor Dirt en Off-Road Tires voor Cross Country;
+- seizoenskeuze voor Spring, Summer, Autumn en Winter, los van de route-ondergrond;
+- conservatieve zomer-/wintercorrectie op bandenstartdruk en seizoenswaarschuwingen;
 - Quick en Advanced invoer;
 - acht tune-modi;
 - verbeterd advies plus optionele TuneLab-vergelijking;
@@ -34,10 +39,10 @@ Repository:
 
 | Onderdeel | Versie |
 | --- | --- |
-| App | `0.4.0` |
-| Eigen tune-engine | `fh6-companion-0.3.0` |
+| App | `0.4.1` |
+| Eigen tune-engine | `fh6-companion-0.3.1` |
 | TuneLab-baseline | `tunelab-1.7.0` |
-| Build Guide | `build-guide-0.3.0` |
+| Build Guide | `build-guide-0.3.1` |
 | Catalogus | `tunelab-v7+fh6-local-2026-06-10` |
 | Lokale opslag | `fh6-tune-companion:v1:tunes` |
 
@@ -123,11 +128,15 @@ Herstel vanaf cache `fh6-tune-v6`:
 
 ## Laatst uitgevoerde kwaliteitscontrole
 
-Op 11 juni 2026 voor Build Guide `0.3.0`:
+Op 11 juni 2026 voor Build Guide `0.3.1`:
 
 - ESLint schoon.
-- 51 Vitest-tests geslaagd in de gezonde tijdelijke runtime.
+- 56 Vitest-tests geslaagd in de gezonde tijdelijke runtime.
 - Pages-productiebuild geslaagd.
+- `R`-klasse, oude `X`-migratie, profielvolgorde en Cross Country-banden zijn
+  afgedekt met regressietests.
+- Seizoen blijft gescheiden van eventondergrond; zomer-/winterdruk, Rain-compound,
+  Winter zonder geforceerde Snow Tires en legacy-import zijn afgedekt.
 - Profielgenerator levert 618 versieerbare buildprofielen.
 - Dekkingstest koppelt 610 van 642 gebundelde catalogusregels betrouwbaar; 32
   onzekere bronvarianten vallen terug op generiek advies.
@@ -136,7 +145,7 @@ Op 11 juni 2026 voor Build Guide `0.3.0`:
 - Gecontroleerde flow: 1992 Mazda RX-7 Type R toont het juiste profiel; wijziging
   naar Rally + Mixed houdt de gebruikerskeuze leidend en toont Rally suspension.
 - Engelse bronkaarten, confidence-labels en FH6-onderdeelnamen gecontroleerd.
-- Service-worker cache `fh6-tune-v7` laadt de app, autodatabase en het RX-7-profiel
+- Service-worker cache `fh6-tune-v8` laadt de app, autodatabase en het RX-7-profiel
   na een volledig offline herladen.
 - Golden tests dekken lichte RWD, zware AWD en voor-zware FWD ARB-bereiken.
 - Veerinterpolatie, FWD-omkering, ontbrekende/ongeldige grenzen, Quick/Advanced
