@@ -90,6 +90,27 @@ Guide staan daar los van. Zie `licenses/TUNELAB-MIT.txt` en
 - De repository is openbaar omdat het gebruikte GitHub-account anders geen Pages
   ondersteunt. Er staan geen persoonlijke tunes of geheimen in de repository.
 
+## PWA-incident 11 juni 2026
+
+Release `61b4083` kon bij bestaande mobiele installaties een grijs scherm geven.
+De oude service worker cachete HTML eerst, cachete gehashte JavaScriptbundels niet
+atomair mee en verwijderde de vorige cache direct. Omdat GitHub Pages `index.html`
+nog maximaal tien minuten kon cachen, kon oude HTML verwijzen naar een bundel die
+na deployment niet meer bestond. De fetch-fallback antwoordde bij die mislukte
+JavaScriptrequest bovendien met HTML.
+
+Herstel vanaf cache `fh6-tune-v6`:
+
+- de actuele HTML en alle daarin genoemde gehashte assets worden tijdens installatie
+  als één release gecachet;
+- navigatie gebruikt netwerk-eerst en omzeilt de HTTP-cache;
+- niet-navigatierequests krijgen nooit meer `index.html` als foutfallback;
+- service-workerregistratie staat in `index.html`, zodat updates ook werken wanneer
+  de React-bundel niet start;
+- open clients worden na de v6-activatie eenmaal herladen;
+- de vorige bundel `public/assets/index-YQYEjLgL.js` blijft tijdelijk beschikbaar
+  om bestaande v5-clients te laten herstellen.
+
 ## Laatst uitgevoerde kwaliteitscontrole
 
 Op 11 juni 2026 voor Sprint 2:

@@ -8,6 +8,26 @@
     <link rel="manifest" href="%BASE_URL%manifest.webmanifest" />
     <link rel="icon" href="%BASE_URL%icon.svg" type="image/svg+xml" />
     <title>FH6 Tune Companion</title>
+    <script>
+      if ("serviceWorker" in navigator) {
+        let reloadingForUpdate = false;
+        navigator.serviceWorker.addEventListener("controllerchange", () => {
+          if (reloadingForUpdate) return;
+          reloadingForUpdate = true;
+          window.location.reload();
+        });
+        window.addEventListener("load", () => {
+          navigator.serviceWorker
+            .register(new URL("sw.js", document.baseURI), {
+              updateViaCache: "none",
+            })
+            .then((registration) => registration.update())
+            .catch((error) =>
+              console.error("Service worker kon niet starten.", error),
+            );
+        });
+      }
+    </script>
   </head>
   <body>
     <div id="root"></div>

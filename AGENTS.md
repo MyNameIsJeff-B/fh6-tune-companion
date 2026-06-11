@@ -125,6 +125,10 @@ Controleer bij UI-, PWA- of datapadwijzigingen ook:
 4. Service worker bestuurt de pagina na herladen.
 5. De app opent na een eerste online bezoek ook offline.
 6. Opslaan, herladen, JSON-export/import en delen blijven werken als die code is geraakt.
+7. Test bij iedere service-worker-, cache- of bundelwijziging ook een update vanaf
+   de vorige live release op dezelfde origin. Een frisse browser alleen is niet
+   voldoende: de oude HTML/cache moet naar de nieuwe gehashte assets migreren
+   zonder leeg, grijs of gedeeltelijk scherm.
 
 Na een geslaagde push:
 
