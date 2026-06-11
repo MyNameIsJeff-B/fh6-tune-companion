@@ -50,6 +50,14 @@ export interface BuildCapabilities {
   differential: boolean;
 }
 
+export interface SpringSliderRange {
+  frontMin?: number;
+  frontMax?: number;
+  rearMin?: number;
+  rearMax?: number;
+  unit: "kgf/mm" | "lb/in";
+}
+
 export interface TuneInput {
   id: string;
   inputMode: InputMode;
@@ -68,7 +76,7 @@ export interface TuneInput {
   tireFront: string;
   tireRear: string;
   redlineRpm: number;
-  peakTorqueRpm: number;
+  peakTorqueRpm?: number;
   maxTorque: number;
   topSpeed: number;
   gears: number;
@@ -80,6 +88,7 @@ export interface TuneInput {
   feelStability: number;
   feelResponse: number;
   capabilities: BuildCapabilities;
+  springSliderRange?: SpringSliderRange;
   buildGuide?: AppliedBuildGuide;
 }
 

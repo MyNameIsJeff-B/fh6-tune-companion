@@ -29,8 +29,17 @@ export function refreshSectionSummaries(
         section.summary = `${amount(section, "arb-front")} / ${amount(section, "arb-rear")}`;
         break;
       case "springs": {
-        const unit = get(section, "spring-front")?.unit ?? "";
-        section.summary = `${amount(section, "spring-front")} / ${amount(section, "spring-rear")} ${unit}`.trim();
+        const front = get(section, "spring-front");
+        const rear = get(section, "spring-rear");
+        const unit = front?.unit ?? "";
+        const frontPercent = front?.label.match(/\(([\d.]+%)\)/)?.[1];
+        const rearPercent = rear?.label.match(/\(([\d.]+%)\)/)?.[1];
+        const percentages =
+          unit && frontPercent && rearPercent
+            ? ` · ${frontPercent} / ${rearPercent}`
+            : "";
+        section.summary =
+          `${amount(section, "spring-front")} / ${amount(section, "spring-rear")} ${unit}${percentages}`.trim();
         break;
       }
       case "damping":

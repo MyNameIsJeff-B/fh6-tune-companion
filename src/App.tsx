@@ -39,6 +39,10 @@ import { calculateBaseline } from "./engine/baseline";
 import { applyDiagnosis, DIAGNOSES } from "./engine/diagnosis";
 import { calculateImproved } from "./engine/improved";
 import {
+  loadSpringSliderRange,
+  saveSpringSliderRange,
+} from "./storage/carOverrides";
+import {
   deleteTune,
   exportTune,
   importTunes,
@@ -113,6 +117,11 @@ function App() {
   const [input, setInput] = useState<TuneInput>(() => ({
     ...DEFAULT_INPUT,
     capabilities: { ...ALL_CAPABILITIES },
+    springSliderRange: loadSpringSliderRange(
+      DEFAULT_INPUT.year,
+      DEFAULT_INPUT.make,
+      DEFAULT_INPUT.model,
+    ),
   }));
   const [cars, setCars] = useState<CarRecord[]>([]);
   const [carSearch, setCarSearch] = useState("Mazda RX-7");
@@ -150,6 +159,21 @@ function App() {
   const patch = <K extends keyof TuneInput>(key: K, value: TuneInput[K]) =>
     setInput((current) => ({ ...current, [key]: value }));
 
+  const patchSpringRange = (
+    key: "frontMin" | "frontMax" | "rearMin" | "rearMax",
+    rawValue: string,
+  ) => {
+    const springSliderRange = {
+      unit:
+        input.springSliderRange?.unit ??
+        (input.unitSystem === "metric" ? ("kgf/mm" as const) : ("lb/in" as const)),
+      ...input.springSliderRange,
+      [key]: rawValue === "" ? undefined : Number(rawValue),
+    };
+    saveSpringSliderRange(input.year, input.make, input.model, springSliderRange);
+    patch("springSliderRange", springSliderRange);
+  };
+
   const selectCar = (car: CarRecord) => {
     const weightKg =
       car.weight > 0
@@ -175,6 +199,7 @@ function App() {
       hasAero: false,
       includeGearing: true,
       capabilities: { ...ALL_CAPABILITIES },
+      springSliderRange: loadSpringSliderRange(car.year, car.make, car.model),
       buildGuide: undefined,
     }));
     setCarSearch(`${car.year} ${car.make} ${car.model}`);
@@ -185,12 +210,11 @@ function App() {
   const generate = () => {
     const finalInput = {
       ...input,
-      redlineRpm: input.inputMode === "quick" ? 7500 : input.redlineRpm,
-      peakTorqueRpm: input.inputMode === "quick" ? 5200 : input.peakTorqueRpm,
       maxTorque: input.inputMode === "quick" ? (input.unitSystem === "metric" ? 500 : 369) : input.maxTorque,
       topSpeed: input.inputMode === "quick" ? (input.unitSystem === "metric" ? 240 : 149) : input.topSpeed,
       gears: input.inputMode === "quick" ? 6 : input.gears,
       includeGearing:
+        input.inputMode === "advanced" &&
         input.includeGearing &&
         input.capabilities.gearing !== "none",
     };
@@ -469,6 +493,64 @@ function App() {
               </label>
             ) : null}
 
+            <div className="spring-range-panel">
+              <div className="spring-range-panel__heading">
+                <div>
+                  <h2 className="subheading">Veer-slidergrenzen</h2>
+                  <p>
+                    Neem minimum en maximum letterlijk over uit FH6. We bewaren
+                    deze waarden voor deze auto.
+                  </p>
+                </div>
+                <span>
+                  {input.springSliderRange?.unit ??
+                    (input.unitSystem === "metric" ? "kgf/mm" : "lb/in")}
+                </span>
+              </div>
+              <div className="field-grid">
+                <Field label="Voor minimum">
+                  <input
+                    type="number"
+                    step="0.01"
+                    value={input.springSliderRange?.frontMin ?? ""}
+                    onChange={(event) =>
+                      patchSpringRange("frontMin", event.target.value)
+                    }
+                  />
+                </Field>
+                <Field label="Voor maximum">
+                  <input
+                    type="number"
+                    step="0.01"
+                    value={input.springSliderRange?.frontMax ?? ""}
+                    onChange={(event) =>
+                      patchSpringRange("frontMax", event.target.value)
+                    }
+                  />
+                </Field>
+                <Field label="Achter minimum">
+                  <input
+                    type="number"
+                    step="0.01"
+                    value={input.springSliderRange?.rearMin ?? ""}
+                    onChange={(event) =>
+                      patchSpringRange("rearMin", event.target.value)
+                    }
+                  />
+                </Field>
+                <Field label="Achter maximum">
+                  <input
+                    type="number"
+                    step="0.01"
+                    value={input.springSliderRange?.rearMax ?? ""}
+                    onChange={(event) =>
+                      patchSpringRange("rearMax", event.target.value)
+                    }
+                  />
+                </Field>
+              </div>
+            </div>
+
             <h2 className="subheading">Verstelbare onderdelen</h2>
             <div className="capability-list">
               {(Object.keys(capabilityLabels) as Capability[]).map((capability) => {
@@ -594,20 +676,14 @@ function App() {
               <div className="advanced-panel">
                 <h2 className="subheading">Advanced gegevens</h2>
                 <div className="field-grid">
-                  <Field label="Redline RPM">
+                  <Field
+                    label="Redline RPM"
+                    hint="Open tijdens een testrit de telemetrie, zoek waar de begrenzer ingrijpt en trek circa 100-200 RPM af."
+                  >
                     <input
                       type="number"
                       value={input.redlineRpm}
                       onChange={(event) => patch("redlineRpm", Number(event.target.value))}
-                    />
-                  </Field>
-                  <Field label="Piek koppel RPM">
-                    <input
-                      type="number"
-                      value={input.peakTorqueRpm}
-                      onChange={(event) =>
-                        patch("peakTorqueRpm", Number(event.target.value))
-                      }
                     />
                   </Field>
                   <Field label={`Max. koppel (${input.unitSystem === "metric" ? "Nm" : "lb-ft"})`}>
@@ -869,9 +945,18 @@ function App() {
                     type="button"
                     className="saved-list__load"
                     onClick={() => {
-                      setInput(item.input);
+                      const springSliderRange =
+                        item.input.springSliderRange ??
+                        loadSpringSliderRange(
+                          item.input.year,
+                          item.input.make,
+                          item.input.model,
+                        );
+                      setInput({ ...item.input, springSliderRange });
                       setResult(item);
-                      setBaseline(calculateBaseline(item.input));
+                      setBaseline(
+                        calculateBaseline({ ...item.input, springSliderRange }),
+                      );
                       setStep(3);
                       setModal(null);
                     }}

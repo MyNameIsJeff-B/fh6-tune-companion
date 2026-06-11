@@ -1,6 +1,6 @@
 # Build Guide Research
 
-Laatst gecontroleerd: 10 juni 2026
+Laatst gecontroleerd: 11 juni 2026
 
 ## Productbesluit
 
@@ -29,6 +29,11 @@ expliciete waarschuwing.
 - [Forza Horizon 6 Cars List](https://forza.net/news/forza-horizon-6-cars-list)
   wordt alleen gebruikt om auto-identiteit en modeljaar te bevestigen. De lijst
   bevat geen volledige upgradecompatibiliteit.
+- [Forza Horizon 6 Data Out](https://support.forza.net/hc/en-us/articles/51744149102611-Forza-Horizon-6-Data-Out-Documentation)
+  bevestigt dat FH6 onder andere actuele RPM, maximale motor-RPM, koppel, snelheid,
+  versnelling en voertuigidentiteit via een lokale UDP-stream kan uitsturen. De
+  huidige sprint bouwt nog geen telemetrie-import, maar houdt het invoermodel
+  daarvoor open.
 
 ### Calculators en gidsen
 
@@ -39,6 +44,13 @@ expliciete waarschuwing.
 - [ForzaTune Pro](https://play.google.com/store/apps/details?id=com.flamefrontstudios.forzatune7)
   vermeldt FH6-ondersteuning als beta op 4 juni 2026. De app wordt alleen als
   product- en workflowreferentie gebruikt; gesloten formules zijn niet overgenomen.
+- [ForzaTune: power/torque graph ontbreekt](https://forzatune.com/tuning-a-car-that-doesnt-have-a-power-and-torque-graph/)
+  onderbouwt de handmatige telemetriemethode voor redline: zoek de begrenzer tijdens
+  een testrit en trek circa 100-200 RPM af. De app toont dit als invoerhulp.
+- [ForzaFire FH6 Platform & Handling](https://www.forzafire.com/guides/forza-horizon-6-platform-and-handling-tuning-guide)
+  levert de gebruikte conservatieve ARB-bereiken per aandrijving en de
+  klasse-afhankelijke spring-sliderpercentages. De intern tegenstrijdige
+  ARB-formule verderop in dezelfde gids is bewust niet overgenomen.
 - [QuickTune Pro](https://forzaquicktune.com/guides/) laat zien dat een
   build-assistent alle gekozen upgrades moet meenemen en ongeschikte combinaties
   moet signaleren. De publieke informatie bevestigt op 10 juni 2026 nog geen
@@ -78,3 +90,6 @@ expliciete waarschuwing.
 - Geen commerciële database of preset is gekopieerd.
 - Geen review of marketingclaim wordt als bewijs voor een exacte formule gebruikt.
 - Geen AI-gegenereerde upgradebeschikbaarheid wordt als catalogusfeit opgeslagen.
+- De oude Motorsport-forumclaim over een 10× fout in metrische veerweergave geldt
+  niet als bewezen FH6-feit. Ingevoerde sliderwaarden worden daarom letterlijk als
+  gamewaarden behandeld en niet fysisch omgerekend.

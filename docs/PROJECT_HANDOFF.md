@@ -1,10 +1,10 @@
 # Project Handoff
 
-Laatst bijgewerkt: 10 juni 2026
+Laatst bijgewerkt: 11 juni 2026
 
 ## Huidige status
 
-FH6 Tune Companion `0.2.0` is een werkende mobiele PWA met:
+FH6 Tune Companion `0.3.0` is een werkende mobiele PWA met:
 
 - auto zoeken of handmatig invoeren;
 - Build Guide op discipline, ondergrond, aandrijving, klasse en focus;
@@ -16,7 +16,10 @@ FH6 Tune Companion `0.2.0` is een werkende mobiele PWA met:
 - lokale garage;
 - JSON-export/import;
 - leesbare deelkaart;
-- offline gebruik na het eerste bezoek.
+- offline gebruik na het eerste bezoek;
+- ARB-startwaarden binnen conservatieve FH6-bereiken voor normale wegmodi;
+- per-auto opgeslagen veer-slidergrenzen en percentageadvies zonder schijnwaarde;
+- gearing alleen vanuit bevestigde Advanced-invoer.
 
 Live:
 <https://mynameisjeff-b.github.io/fh6-tune-companion/>
@@ -28,8 +31,8 @@ Repository:
 
 | Onderdeel | Versie |
 | --- | --- |
-| App | `0.2.0` |
-| Eigen tune-engine | `fh6-companion-0.2.0` |
+| App | `0.3.0` |
+| Eigen tune-engine | `fh6-companion-0.3.0` |
 | TuneLab-baseline | `tunelab-1.7.0` |
 | Build Guide | `build-guide-0.2.0` |
 | Catalogus | `tunelab-v7+fh6-local-2026-06-10` |
@@ -64,12 +67,19 @@ Guide staan daar los van. Zie `licenses/TUNELAB-MIT.txt` en
 6. `src/engine/summaries.ts` ververst alle zichtbare samenvattingen.
 7. `src/engine/diagnosis.ts` maakt op rijfeedback een nieuwe revisie.
 8. `src/storage/tunes.ts` bewaart maximaal 50 tunes in `localStorage`.
+9. `src/storage/carOverrides.ts` bewaart bevestigde veer-slidergrenzen per auto.
 
 ## Bewust bekende beperkingen
 
 - De auto-catalogus bevat geen betrouwbare volledige upgradeset per auto.
 - PI-kosten, eindgewicht, gewichtsverdeling en sliderbereiken moeten in FH6 worden
   gecontroleerd.
+- Zonder bevestigde veergrenzen toont de app alleen een percentage van het
+  in-game bereik; exacte `kgf/mm`- of `lb/in`-waarden worden dan bewust niet geschat.
+- De huidige spring-percentages zijn primair voor wegauto's onderbouwd. Rally,
+  dirt, mixed en snow tonen daarom een extra praktijkwaarschuwing.
+- Quick mode berekent geen gearing. Advanced vraagt redline, topsnelheid,
+  versnellingen en bandenmaat; piekkoppel-RPM is verwijderd omdat het niet werd gebruikt.
 - `valuesConfirmed` verlaagt onzekerheid pas nadat de gebruiker buildwaarden heeft
   gecontroleerd.
 - Het verbeterde model is technisch en scenario-matig getest, maar nog niet breed
@@ -82,19 +92,23 @@ Guide staan daar los van. Zie `licenses/TUNELAB-MIT.txt` en
 
 ## Laatst uitgevoerde kwaliteitscontrole
 
-Op 10 juni 2026:
+Op 11 juni 2026 voor Sprint 2:
 
 - ESLint schoon.
-- 37 Vitest-tests geslaagd.
+- 45 Vitest-tests geslaagd.
 - Pages-productiebuild geslaagd.
-- GitHub Pages workflow en deployment geslaagd.
-- Live app getest op 390 x 844.
-- Geen horizontale overflow.
-- Autodatabase, manifest en lokale fonts laden via de Pages-submap.
-- Service worker bestuurt de live pagina.
-- Live app herlaadt offline en toont daarna de autodatabase.
-- Eerder in dezelfde oplevering zijn garageherstel, diagnose, JSON-rondreis en
-  delen gecontroleerd.
+- Golden tests dekken lichte RWD, zware AWD en voor-zware FWD ARB-bereiken.
+- Veerinterpolatie, FWD-omkering, ontbrekende/ongeldige grenzen, Quick/Advanced
+  gearing en oude JSON-import zijn afgedekt.
+- Build uitgevoerd in `C:\tmp` omdat npm-installatie in de Google Drive-map door
+  bestandslocks beschadigd raakte.
+- Lokale browsercontrole geslaagd op 390 x 844 en 320 x 844 zonder horizontale
+  overflow of consolefouten.
+- Gecontroleerde flow: per-auto veergrenzen bewaren, Quick zonder gearing,
+  Advanced met redline-uitleg en berekende final drive.
+- De ingebouwde Codex-browser kon door een Windows-runtimefout niet starten;
+  dezelfde controles zijn uitgevoerd met de Playwright CLI-fallback.
+- Live deployment volgt nog voor publicatie.
 
 ## Eerstvolgende productstap
 
@@ -123,7 +137,7 @@ Zet bewezen correcties daarna om in:
 
 - Test bekende probleemauto's van de gebruiker.
 - Voeg golden fixtures toe voor echte, bevestigde builds.
-- Vergelijk advies met in-game slidergrenzen.
+- Vergelijk de nieuwe ARB- en veeradviezen met echte in-game slidergrenzen.
 - Maak onzekerheid per sectie nog zichtbaarder.
 
 ### P1 - Dagelijks gebruik
@@ -156,6 +170,16 @@ Normale route:
 3. Merge of push naar `main`.
 4. Controleer workflow `Publiceer app`.
 5. Controleer de live URL en offlinegedrag.
+
+Bindend oplevercontract:
+
+- Appwerk is pas afgerond wanneer er een bereikbare, geteste URL beschikbaar is
+  voor een normale telefoonbrowser.
+- Houd de laatst werkende live versie intact tijdens ontwikkeling.
+- Publiceer een volledig gecontroleerde kandidaat in dezelfde taak; gebruik voor
+  bewust onaf werk een aparte test-URL.
+- Een lokale preview of geslaagde build zonder bereikbare URL is geen afgeronde
+  app-oplevering.
 
 GitHub Pages verwacht de submap `/fh6-tune-companion/`. Wijzig de repositorynaam
 niet zonder ook `vite.config.ts` en deze documentatie bij te werken.

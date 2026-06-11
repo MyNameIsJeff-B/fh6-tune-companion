@@ -5,21 +5,27 @@ import {
 } from "../domain/defaults";
 import type {
   Capability,
+  DriveType,
+  SpringSliderRange,
   TuneInput,
   TuneResult,
   TuneSection,
   TuneValue,
 } from "../domain/types";
 
-const FREQUENCY = {
-  Race: { f: 1.1, r: 1.01 },
-  Touge: { f: 1.08, r: 0.99 },
-  Drift: { f: 0.85, r: 0.78 },
-  Rally: { f: 0.63, r: 0.58 },
-  Drag: { f: 0.95, r: 0.72 },
-  Wangan: { f: 1.04, r: 0.97 },
-  Rain: { f: 0.85, r: 0.79 },
-  General: { f: 0.96, r: 0.91 },
+export const ROAD_ARB_RANGES: Record<
+  DriveType,
+  { front: [number, number]; rear: [number, number] }
+> = {
+  RWD: { front: [18, 25], rear: [25, 35] },
+  AWD: { front: [22, 30], rear: [28, 38] },
+  FWD: { front: [8, 15], rear: [25, 40] },
+};
+
+const SPRING_SLIDER_TARGETS = {
+  sports: { front: 92.5, rear: 69 },
+  highPerformance: { front: 89, rear: 73.5 },
+  raceCar: { front: 88, rear: 72 },
 } as const;
 
 const labels: Record<Capability, string> = {
@@ -38,6 +44,33 @@ const clamp = (value: number, min: number, max: number) =>
   Math.max(min, Math.min(max, value));
 const round = (value: number, decimals = 1) =>
   Number(value.toFixed(decimals));
+
+export const isValidSpringSliderRange = (
+  range?: SpringSliderRange,
+): range is SpringSliderRange &
+  Required<Pick<SpringSliderRange, "frontMin" | "frontMax" | "rearMin" | "rearMax">> =>
+  Boolean(
+    range &&
+      typeof range.frontMin === "number" &&
+      typeof range.frontMax === "number" &&
+      typeof range.rearMin === "number" &&
+      typeof range.rearMax === "number" &&
+      range.frontMin >= 0 &&
+      range.rearMin >= 0 &&
+      range.frontMax > range.frontMin &&
+      range.rearMax > range.rearMin,
+  );
+
+export const getSpringSliderTargets = (input: TuneInput) => {
+  const base = ["D", "C"].includes(input.carClass)
+    ? SPRING_SLIDER_TARGETS.sports
+    : ["B", "A"].includes(input.carClass)
+      ? SPRING_SLIDER_TARGETS.highPerformance
+      : SPRING_SLIDER_TARGETS.raceCar;
+  return input.driveType === "FWD"
+    ? { front: base.rear, rear: base.front }
+    : { ...base };
+};
 
 const value = (
   key: string,
@@ -87,30 +120,35 @@ export function calculateBaseline(input: TuneInput): TuneResult {
   const speedKmh = metric ? input.topSpeed : input.topSpeed * 1.609;
   const torqueNm = metric ? input.maxTorque : input.maxTorque * 1.356;
   const frontPct = input.frontWeightPercent / 100;
-  const rearPct = 1 - frontPct;
-  const frontCornerMass = weightKg * frontPct * 0.5;
-  const rearCornerMass = weightKg * rearPct * 0.5;
   const is = (mode: TuneInput["tuneMode"]) => input.tuneMode === mode;
   const rally = is("Rally") || input.surface === "Dirt" || input.surface === "Mixed";
   const snow = input.surface === "Snow";
   const pwrToWeight = torqueNm / (weightKg / 1000);
   const pwrNorm = Math.min(1, pwrToWeight / 800);
 
-  const pi = clamp(input.pi || 500, 100, 999);
-  const baseFreq = 7.35e-7 * Math.pow(pi - 100, 2) + 2.65;
-  const frequency = FREQUENCY[input.tuneMode] ?? FREQUENCY.General;
-  const freqFront = baseFreq * frequency.f;
-  const freqRear = baseFreq * frequency.r;
-  const springUnit = metric ? "N/mm" : "lb/in";
-  const calcSpring = (mass: number, freq: number) => {
-    const nPerM = mass * Math.pow(2 * Math.PI * freq, 2);
-    return metric ? round((nPerM / 1000) * 9) : round(nPerM / 175.127);
-  };
-  let springFront = calcSpring(frontCornerMass, freqFront);
-  let springRear = calcSpring(rearCornerMass, freqRear);
-  const balanceMod = (input.feelStability - 50) / 200;
-  springFront = round(springFront * (1 + balanceMod));
-  springRear = round(springRear * (1 - balanceMod));
+  const springTargets = getSpringSliderTargets(input);
+  const springRange = isValidSpringSliderRange(input.springSliderRange)
+    ? input.springSliderRange
+    : undefined;
+  const validSpringRange = Boolean(springRange);
+  const springUnit =
+    input.springSliderRange?.unit ?? (metric ? "kgf/mm" : "lb/in");
+  const interpolateSpring = (min: number, max: number, percent: number) =>
+    round(min + (max - min) * (percent / 100), 2);
+  const springFront: number | string = validSpringRange
+    ? interpolateSpring(
+        springRange!.frontMin,
+        springRange!.frontMax,
+        springTargets.front,
+      )
+    : `${springTargets.front}% van bereik`;
+  const springRear: number | string = validSpringRange
+    ? interpolateSpring(
+        springRange!.rearMin,
+        springRange!.rearMax,
+        springTargets.rear,
+      )
+    : `${springTargets.rear}% van bereik`;
 
   const frontRideCm = is("Drift") ? 15.5 : rally ? 20 : snow ? 22 : 15;
   const rearRideCm = is("Drift") ? 15 : rally ? 19 : snow ? 21 : is("Drag") ? 17 : 15;
@@ -137,19 +175,25 @@ export function calculateBaseline(input: TuneInput): TuneResult {
   } else if (is("Rain") || snow) {
     arbFront = input.driveType === "FWD" ? 8 : 5;
     arbRear = input.driveType === "FWD" ? 18 : 12;
-  } else if (input.driveType === "AWD") {
-    arbFront = 12 + Math.round(pwrNorm * 8);
-    arbRear = 50 + Math.round(pwrNorm * 10);
-  } else if (input.driveType === "FWD") {
-    arbFront = 15 + Math.round(pwrNorm * 10);
-    arbRear = 50 + Math.round(pwrNorm * 10);
   } else {
-    arbFront = 8 + Math.round(pwrNorm * 14);
-    arbRear = 45 + Math.round(pwrNorm * 18);
+    const ranges = ROAD_ARB_RANGES[input.driveType];
+    const frontMid = (ranges.front[0] + ranges.front[1]) / 2;
+    const rearMid = (ranges.rear[0] + ranges.rear[1]) / 2;
+    const weightBias = clamp((input.frontWeightPercent - 50) / 20, -1, 1);
+    const responseBias = (input.feelResponse - 50) / 20;
+    arbFront =
+      frontMid +
+      weightBias * ((ranges.front[1] - ranges.front[0]) / 2) -
+      responseBias;
+    arbRear =
+      rearMid -
+      weightBias * ((ranges.rear[1] - ranges.rear[0]) / 2) +
+      responseBias;
+    arbFront = clamp(arbFront, ranges.front[0], ranges.front[1]);
+    arbRear = clamp(arbRear, ranges.rear[0], ranges.rear[1]);
   }
-  const arbFeel = (input.feelResponse - 50) / 10;
-  arbFront = round(clamp(arbFront - arbFeel, 1, 65));
-  arbRear = round(clamp(arbRear + arbFeel, 1, 65));
+  arbFront = round(clamp(arbFront, 1, 65));
+  arbRear = round(clamp(arbRear, 1, 65));
 
   let camberFront = is("Drag") ? 0 : snow ? -0.5 : is("Rain") ? -0.8 : is("Drift") ? -2.5 : rally ? -1 : -1.5;
   let camberRear = is("Drag") ? 0 : snow ? -0.3 : is("Rain") ? -0.5 : is("Drift") ? -1.2 : rally ? -0.8 : -1;
@@ -226,7 +270,12 @@ export function calculateBaseline(input: TuneInput): TuneResult {
   }
 
   let gearingValues: TuneValue[] = [];
-  if (input.includeGearing && input.redlineRpm > 0 && input.topSpeed > 0) {
+  if (
+    input.inputMode === "advanced" &&
+    input.includeGearing &&
+    input.redlineRpm > 0 &&
+    input.topSpeed > 0
+  ) {
     const tire = parseTire(input.tireRear);
     const topKmh = speedKmh;
     const rawFinal = (input.redlineRpm * tire.circumference * 3.6) / (topKmh * 60);
@@ -292,15 +341,31 @@ export function calculateBaseline(input: TuneInput): TuneResult {
     section(
       "springs",
       [
-        value("spring-front", "Veer voor", springFront, springUnit, 0.68),
-        value("spring-rear", "Veer achter", springRear, springUnit, 0.68),
+        value(
+          "spring-front",
+          `Veer voor (${springTargets.front}%)`,
+          springFront,
+          validSpringRange ? springUnit : "",
+          validSpringRange ? 0.78 : 0.5,
+        ),
+        value(
+          "spring-rear",
+          `Veer achter (${springTargets.rear}%)`,
+          springRear,
+          validSpringRange ? springUnit : "",
+          validSpringRange ? 0.78 : 0.5,
+        ),
         value("ride-front", "Rijhoogte voor", metric ? frontRideCm : round(frontRideCm / 2.54), metric ? "cm" : "in", 0.62),
         value("ride-rear", "Rijhoogte achter", metric ? rearRideCm : round(rearRideCm / 2.54), metric ? "cm" : "in", 0.62),
       ],
       rally
-        ? "Vrije veerweg is belangrijker dan een lage auto."
-        : "Gebruik de opgegeven waarde als relatieve start en klem binnen het in-game bereik.",
-      `${springFront} / ${springRear} ${springUnit}`,
+        ? "De percentages zijn een voorzichtige start; vrije veerweg blijft belangrijker op losse ondergrond."
+        : validSpringRange
+          ? "Berekend binnen het bevestigde in-game sliderbereik."
+          : "Vul de vier in-game slidergrenzen in voor exacte veerwaarden.",
+      validSpringRange
+        ? `${springFront} / ${springRear} ${springUnit} · ${springTargets.front}% / ${springTargets.rear}%`
+        : `${springTargets.front}% / ${springTargets.rear}% van bereik`,
     ),
     section(
       "damping",

@@ -388,6 +388,45 @@ main {
   gap: 0 12px;
 }
 
+.spring-range-panel {
+  margin: 18px 0;
+  padding: 14px 14px 0;
+  background: #fff;
+  border: 1px solid #b8bbc0;
+  border-left: 5px solid var(--cyan);
+}
+
+.spring-range-panel__heading {
+  display: flex;
+  margin-bottom: 13px;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.spring-range-panel__heading .subheading {
+  margin: 0;
+}
+
+.spring-range-panel__heading p {
+  max-width: 460px;
+  margin: 3px 0 0;
+  font-size: 11px;
+  line-height: 1.45;
+  color: var(--muted);
+}
+
+.spring-range-panel__heading > span {
+  flex: 0 0 auto;
+  padding: 5px 7px;
+  font-family: var(--display);
+  font-size: 12px;
+  font-weight: 700;
+  background: var(--yellow);
+  border: 1px solid var(--black);
+  text-transform: uppercase;
+}
+
 .segmented {
   display: grid;
   grid-template-columns: repeat(2, 1fr);

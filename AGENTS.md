@@ -79,6 +79,18 @@ de juiste engine en dek ze af met tests.
 
 - GitHub Pages draait vanuit de openbare repository
   `MyNameIsJeff-B/fh6-tune-companion`.
+- Iedere afgeronde app-taak moet eindigen met een gewone, bereikbare en geteste
+  URL waarop de gebruiker dezelfde avond kan spelen en praktijkfeedback kan
+  verzamelen. Alleen een lokale build, map, screenshot of buildbestand geldt niet
+  als oplevering.
+- Bescherm de laatst werkende live versie totdat de nieuwe kandidaat lint, tests,
+  Pages-build en relevante mobiele controles heeft doorstaan. Publiceer daarna
+  dezelfde taak nog naar GitHub Pages en verifieer de echte URL.
+- Is werk bewust nog niet geschikt voor `main`, werk dan geïsoleerd en lever vóór
+  het beëindigen van de taak een aparte bereikbare test-URL. Laat onaf werk nooit
+  de laatst werkende test- of liveversie vervangen.
+- Stop alleen zonder publicatie wanneer de gebruiker dat expliciet vraagt of een
+  externe blokkade publicatie onmogelijk maakt. Leg die blokkade dan concreet vast.
 - Pushes naar `main` starten `.github/workflows/pages.yml`.
 - De Pages-build gebruikt `npm run build -- --mode pages`.
 - `vite.config.ts`, `manifest.webmanifest`, `src/main.tsx`, databestandpaden en
@@ -113,6 +125,14 @@ Controleer bij UI-, PWA- of datapadwijzigingen ook:
 4. Service worker bestuurt de pagina na herladen.
 5. De app opent na een eerste online bezoek ook offline.
 6. Opslaan, herladen, JSON-export/import en delen blijven werken als die code is geraakt.
+
+Na een geslaagde push:
+
+1. Wacht tot workflow `Publiceer app` is geslaagd.
+2. Open de echte Pages-URL, niet alleen een lokale preview.
+3. Controleer minimaal paginalading, mobiele breedte, gewijzigde hoofdflow,
+   asset- en datalading en relevante consolefouten.
+4. Rapporteer de werkende URL als onderdeel van de oplevering.
 
 ## Documentatie bij wijzigingen
 

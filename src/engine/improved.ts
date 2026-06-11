@@ -5,7 +5,11 @@ import type {
   TuneSection,
   TuneValue,
 } from "../domain/types";
-import { calculateBaseline } from "./baseline";
+import {
+  calculateBaseline,
+  isValidSpringSliderRange,
+  ROAD_ARB_RANGES,
+} from "./baseline";
 import { refreshSectionSummaries } from "./summaries";
 
 const copy = <T,>(value: T): T => structuredClone(value);
@@ -46,20 +50,11 @@ export function calculateImproved(input: TuneInput): TuneResult {
     corrections.push("Bumpdemping verlaagd naar een rustiger FH6-startpunt.");
   }
 
-  if (input.unitSystem === "metric") {
-    change(result.sections, "spring-front", (v) => v / 9, 0.66);
-    change(result.sections, "spring-rear", (v) => v / 9, 0.66);
-    const springSection = result.sections.find((section) => section.id === "springs");
-    if (springSection) {
-      const front = springSection.values.find((item) => item.key === "spring-front");
-      const rear = springSection.values.find((item) => item.key === "spring-rear");
-      springSection.summary =
-        front && rear ? `${front.value} / ${rear.value} N/mm` : springSection.summary;
-    }
-    corrections.push(
-      "TuneLabs omstreden 9× metrische veerschaal genormaliseerd; controleer altijd het in-game sliderbereik.",
-    );
-  }
+  corrections.push(
+    isValidSpringSliderRange(input.springSliderRange)
+      ? "Veren binnen de bevestigde in-game slidergrenzen berekend."
+      : "Veren als veilig sliderpercentage getoond; exacte waarden wachten op in-game grenzen.",
+  );
 
   if (input.driveType === "RWD" && input.tuneMode !== "Drift") {
     change(result.sections, "diff-rear-accel", (v) => Math.min(v, 65), 0.8);
@@ -84,23 +79,49 @@ export function calculateImproved(input: TuneInput): TuneResult {
   }
 
   if (input.feelStability > 60) {
-    change(result.sections, "arb-rear", (v) => Math.max(1, v - (input.feelStability - 60) * 0.18), 0.74);
+    const specialMode =
+      ["Drift", "Drag", "Rally", "Rain"].includes(input.tuneMode) ||
+      ["Dirt", "Mixed", "Snow"].includes(input.surface);
+    const rearMinimum = specialMode
+      ? 1
+      : ROAD_ARB_RANGES[input.driveType].rear[0];
+    change(
+      result.sections,
+      "arb-rear",
+      (v) => Math.max(rearMinimum, v - (input.feelStability - 60) * 0.18),
+      0.74,
+    );
     change(result.sections, "toe-rear", (v) => Math.max(v, 0.1), 0.75);
     corrections.push("Stabiliteitsvoorkeur toegepast op achter-ARB en toe.");
   }
 
   if (!input.weight || input.weight <= 0) {
-    warnings.push("Gewicht ontbreekt: veren en demping zijn niet betrouwbaar.");
-    for (const id of ["springs", "damping"] as Capability[]) {
+    warnings.push("Gewicht ontbreekt: demping is minder betrouwbaar.");
+    for (const id of ["damping"] as Capability[]) {
       const section = result.sections.find((item) => item.id === id);
       section?.values.forEach((item) => (item.confidence = 0.25));
     }
   }
   if (!input.frontWeightPercent || input.frontWeightPercent < 30 || input.frontWeightPercent > 70) {
-    warnings.push("Gewichtsverdeling is onzeker: rembalans en veren zijn benaderingen.");
+    warnings.push("Gewichtsverdeling is onzeker: rembalans en ARB zijn benaderingen.");
+  }
+  if (!isValidSpringSliderRange(input.springSliderRange)) {
+    warnings.push(
+      input.springSliderRange
+        ? "De veergrenzen zijn ongeldig: vul per as een maximum hoger dan het minimum in."
+        : "Veergrenzen ontbreken: het advies toont alleen percentages van het in-game bereik.",
+    );
+  }
+  if (
+    input.tuneMode === "Rally" ||
+    ["Dirt", "Mixed", "Snow"].includes(input.surface)
+  ) {
+    warnings.push(
+      "Veerpercentages voor losse ondergrond zijn voorlopig een voorzichtige wegbaseline; valideer veerweg en sliderstand in FH6.",
+    );
   }
   if (input.inputMode === "quick") {
-    warnings.push("Quick gebruikt standaardwaarden voor RPM, bandenmaat en topsnelheid.");
+    warnings.push("Quick berekent geen gearing; kies Advanced en vul bevestigde RPM en topsnelheid in.");
   }
   if (input.buildGuide && !input.buildGuide.valuesConfirmed) {
     warnings.push(

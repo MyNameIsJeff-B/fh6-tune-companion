@@ -59,19 +59,129 @@ describe("tuning engine", () => {
     expect(baseline.baselineVersion).toBe("tunelab-1.7.0");
   });
 
-  it("normalises the disputed metric spring scale in improved advice", () => {
-    const baseline = calculateBaseline(DEFAULT_INPUT);
-    const improved = calculateImproved(DEFAULT_INPUT);
-    const baselineSpring = baseline.sections
+  it.each([
+    {
+      name: "lichte RWD",
+      input: { driveType: "RWD" as const, weight: 980, frontWeightPercent: 48 },
+      front: [18, 25],
+      rear: [25, 35],
+    },
+    {
+      name: "zware AWD",
+      input: { driveType: "AWD" as const, weight: 2100, frontWeightPercent: 58 },
+      front: [22, 30],
+      rear: [28, 38],
+    },
+    {
+      name: "voor-zware FWD",
+      input: { driveType: "FWD" as const, weight: 1450, frontWeightPercent: 64 },
+      front: [8, 15],
+      rear: [25, 40],
+    },
+  ])("keeps road ARB values inside published ranges for $name", ({ input, front, rear }) => {
+    const result = calculateImproved({ ...DEFAULT_INPUT, ...input });
+    const section = result.sections.find((item) => item.id === "arb");
+    const frontValue = Number(
+      section?.values.find((item) => item.key === "arb-front")?.value,
+    );
+    const rearValue = Number(
+      section?.values.find((item) => item.key === "arb-rear")?.value,
+    );
+    expect(frontValue).toBeGreaterThanOrEqual(front[0]);
+    expect(frontValue).toBeLessThanOrEqual(front[1]);
+    expect(rearValue).toBeGreaterThanOrEqual(rear[0]);
+    expect(rearValue).toBeLessThanOrEqual(rear[1]);
+  });
+
+  it("interpolates confirmed spring slider ranges in the literal game unit", () => {
+    const result = calculateImproved({
+      ...DEFAULT_INPUT,
+      inputMode: "advanced",
+      carClass: "A",
+      springSliderRange: {
+        frontMin: 100,
+        frontMax: 300,
+        rearMin: 80,
+        rearMax: 280,
+        unit: "kgf/mm",
+      },
+    });
+    const springs = result.sections.find((item) => item.id === "springs");
+    expect(springs?.values.find((item) => item.key === "spring-front")).toMatchObject({
+      value: 278,
+      unit: "kgf/mm",
+    });
+    expect(springs?.values.find((item) => item.key === "spring-rear")).toMatchObject({
+      value: 227,
+      unit: "kgf/mm",
+    });
+    expect(springs?.summary).toContain("89% / 73.5%");
+  });
+
+  it("swaps spring slider targets for FWD", () => {
+    const result = calculateImproved({
+      ...DEFAULT_INPUT,
+      driveType: "FWD",
+      carClass: "A",
+      springSliderRange: {
+        frontMin: 100,
+        frontMax: 300,
+        rearMin: 80,
+        rearMax: 280,
+        unit: "kgf/mm",
+      },
+    });
+    const springs = result.sections.find((item) => item.id === "springs");
+    expect(springs?.values.find((item) => item.key === "spring-front")?.value).toBe(
+      247,
+    );
+    expect(springs?.values.find((item) => item.key === "spring-rear")?.value).toBe(
+      258,
+    );
+  });
+
+  it("shows percentages instead of an absolute spring guess without valid ranges", () => {
+    const missing = calculateImproved(DEFAULT_INPUT);
+    const missingFront = missing.sections
       .find((item) => item.id === "springs")
-      ?.values.find((item) => item.key === "spring-front")?.value;
-    const improvedSpring = improved.sections
-      .find((item) => item.id === "springs")
-      ?.values.find((item) => item.key === "spring-front")?.value;
-    expect(Number(improvedSpring)).toBeCloseTo(Number(baselineSpring) / 9, 1);
+      ?.values.find((item) => item.key === "spring-front");
+    expect(missingFront?.value).toBe("89% van bereik");
+    expect(missingFront?.unit).toBe("");
+
+    const invalid = calculateImproved({
+      ...DEFAULT_INPUT,
+      springSliderRange: {
+        frontMin: 300,
+        frontMax: 100,
+        rearMin: 80,
+        rearMax: 280,
+        unit: "kgf/mm",
+      },
+    });
+    expect(invalid.warnings.some((warning) => warning.includes("ongeldig"))).toBe(true);
+  });
+
+  it("only calculates gearing from advanced confirmed inputs", () => {
+    const quick = calculateImproved({
+      ...DEFAULT_INPUT,
+      inputMode: "quick",
+      includeGearing: true,
+    });
     expect(
-      improved.sections.find((item) => item.id === "damping")?.summary,
-    ).toContain("B 5.46/5.46");
+      quick.sections.find((item) => item.id === "gearing")?.values,
+    ).toHaveLength(0);
+
+    const advanced = calculateImproved({
+      ...DEFAULT_INPUT,
+      inputMode: "advanced",
+      includeGearing: true,
+      redlineRpm: 7800,
+      topSpeed: 265,
+    });
+    expect(
+      advanced.sections.find((item) => item.id === "gearing")?.values.length,
+    ).toBeGreaterThan(1);
+    expect(advanced.engineVersion).toBe("fh6-companion-0.3.0");
   });
 
   it("creates an immutable diagnosis revision", () => {

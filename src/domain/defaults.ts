@@ -1,6 +1,6 @@
 import type { BuildCapabilities, TuneInput, TuneMode } from "./types";
 
-export const ENGINE_VERSION = "fh6-companion-0.2.0";
+export const ENGINE_VERSION = "fh6-companion-0.3.0";
 export const BASELINE_VERSION = "tunelab-1.7.0";
 export const CATALOG_VERSION = "tunelab-v7+fh6-local-2026-06-10";
 
@@ -49,7 +49,6 @@ export const DEFAULT_INPUT: TuneInput = {
   tireFront: "235/40R17",
   tireRear: "255/40R17",
   redlineRpm: 8000,
-  peakTorqueRpm: 5500,
   maxTorque: 390,
   topSpeed: 260,
   gears: 6,
