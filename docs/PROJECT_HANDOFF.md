@@ -108,7 +108,11 @@ Op 11 juni 2026 voor Sprint 2:
   Advanced met redline-uitleg en berekende final drive.
 - De ingebouwde Codex-browser kon door een Windows-runtimefout niet starten;
   dezelfde controles zijn uitgevoerd met de Playwright CLI-fallback.
-- Live deployment volgt nog voor publicatie.
+- GitHub Pages workflow `27345829984` en deployment zijn geslaagd vanaf releasecommit
+  `ff6e475`.
+- De echte live URL is getest op 390 x 844: gewijzigde invoerflow, autodatabase,
+  lokale fonts, assets, service worker en console zijn in orde.
+- Na een eerste online bezoek herlaadt de live app met autodatabase ook offline.
 
 ## Eerstvolgende productstap
 
