@@ -4,7 +4,7 @@ Laatst bijgewerkt: 11 juni 2026
 
 ## Huidige status
 
-FH6 Tune Companion `0.4.1` is een werkende mobiele PWA met:
+FH6 Tune Companion `0.5.0` is een werkende mobiele PWA met:
 
 - auto zoeken of handmatig invoeren;
 - Engelstalige Build Guide met per-auto profiel, discipline, ondergrond,
@@ -15,7 +15,8 @@ FH6 Tune Companion `0.4.1` is een werkende mobiele PWA met:
 - actuele `R`-topklasse met migratie van oude opgeslagen `X`-builds;
 - afzonderlijke Rally Tires voor Dirt en Off-Road Tires voor Cross Country;
 - seizoenskeuze voor Spring, Summer, Autumn en Winter, los van de route-ondergrond;
-- conservatieve zomer-/wintercorrectie op bandenstartdruk en seizoenswaarschuwingen;
+- `+0,05 bar` Summer- en `-0,10 bar` Winter-correctie op tire pressure, met
+  koud-asfaltwaarschuwingen;
 - Quick en Advanced invoer;
 - acht tune-modi;
 - verbeterd advies plus optionele TuneLab-vergelijking;
@@ -28,6 +29,12 @@ FH6 Tune Companion `0.4.1` is een werkende mobiele PWA met:
 - ARB-startwaarden binnen conservatieve FH6-bereiken voor normale wegmodi;
 - per-auto opgeslagen veer-slidergrenzen en percentageadvies zonder schijnwaarde;
 - gearing alleen vanuit bevestigde Advanced-invoer.
+- `3%` RPM-marge onder de limiter voor Final Drive;
+- neutrale `0,0°` road toe als FH6-default;
+- bump op maximaal `50%` van rebound voor normale road modes;
+- Race Brakes vanaf A-class voor Road-builds;
+- klassesprongwaarschuwing bij minimaal twee klassen boven native;
+- expliciete Brake Balance-richting in gedeelde tunes.
 
 Live:
 <https://mynameisjeff-b.github.io/fh6-tune-companion/>
@@ -39,10 +46,10 @@ Repository:
 
 | Onderdeel | Versie |
 | --- | --- |
-| App | `0.4.1` |
-| Eigen tune-engine | `fh6-companion-0.3.1` |
+| App | `0.5.0` |
+| Eigen tune-engine | `fh6-companion-0.4.0` |
 | TuneLab-baseline | `tunelab-1.7.0` |
-| Build Guide | `build-guide-0.3.1` |
+| Build Guide | `build-guide-0.4.0` |
 | Catalogus | `tunelab-v7+fh6-local-2026-06-10` |
 | Lokale opslag | `fh6-tune-companion:v1:tunes` |
 
@@ -99,6 +106,10 @@ Guide staan daar los van. Zie `licenses/TUNELAB-MIT.txt` en
   gecontroleerd.
 - Het verbeterde model is technisch en scenario-matig getest, maar nog niet breed
   gevalideerd met echte FH6-ritten.
+- Damping is nog niet gewichtsgeleid en de huidige road spring-percentages zijn
+  nog niet via telemetry gevalideerd. Dit zijn de eerstvolgende fundamentele fixes.
+- De PI-class caps en precieze R-class-definitie spreken in openbare bronnen
+  elkaar tegen en wachten op één in-game verificatie.
 - Er is geen account, synchronisatie tussen apparaten of backend.
 - Tunes op de desktop en telefoon zijn daarom aparte lokale collecties; JSON is de
   huidige overdrachtsmethode.
@@ -128,7 +139,7 @@ Herstel vanaf cache `fh6-tune-v6`:
 
 ## Laatst uitgevoerde kwaliteitscontrole
 
-Op 11 juni 2026 voor Build Guide `0.3.1`:
+Op 11 juni 2026 voor Build Guide `0.4.0`:
 
 - ESLint schoon.
 - 56 Vitest-tests geslaagd in de gezonde tijdelijke runtime.
@@ -163,6 +174,26 @@ Op 11 juni 2026 voor Build Guide `0.3.1`:
 - De echte live URL is getest op 390 x 844: gewijzigde invoerflow, autodatabase,
   lokale fonts, assets, service worker en console zijn in orde.
 - Na een eerste online bezoek herlaadt de live app met autodatabase ook offline.
+
+### Foundation Fix Sprint A
+
+Op 11 juni 2026 zijn audititems A3-A6, B1-B5, C3, C5, C6 en C8 verwerkt:
+
+- 65 Vitest-tests geslaagd in `C:\tmp\fh6-tune-runtime`;
+- ESLint schoon;
+- Pages-productiebuild geslaagd;
+- TuneLab-baseline blijft apart; de FH6-correcties staan in `improved.ts`;
+- de in-app Browser-runtime startte niet door de bekende Windows
+  `CreateProcessWithLogonW`-fout, waardoor geautomatiseerde render-QA lokaal niet
+  opnieuw kon worden uitgevoerd.
+
+Wacht nog op Jeffs in-game of telemetry-validatie:
+
+- gewichtsgeleide damping (A1);
+- lagere, gewichtsgeleide spring targets (A2);
+- rally compound als Road-alternatief en front tire width-prioriteit (C1/C2);
+- Aero Balance-regel, differential-granulariteit en eigen Drift/Touge/Wangan/Drag-regels;
+- PI-class caps, R-class-definitie en rear toe-in sign voor diagnose.
 
 ## Eerstvolgende productstap
 

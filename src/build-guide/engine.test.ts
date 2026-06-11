@@ -127,6 +127,50 @@ describe("build guide", () => {
     ).toBe("Snow");
   });
 
+  it("recommends Race Brakes for A-class and higher road builds", () => {
+    const plan = generateBuildPlan(DEFAULT_INPUT, {
+      ...defaultBuildConfig(DEFAULT_INPUT),
+      tuneMode: "Race",
+      surface: "Road",
+      targetClass: "A",
+      targetPi: 800,
+    });
+    const brakes = plan.stages
+      .find((stage) => stage.id === "chassis")
+      ?.upgrades.find((upgrade) => upgrade.id === "race-brakes");
+    expect(brakes?.priority).toBe("recommend");
+    expect(brakes?.detail).toContain("ForzaFire");
+  });
+
+  it("warns when the target is at least two classes above native", () => {
+    const plan = generateBuildPlan(
+      { ...DEFAULT_INPUT, carClass: "C", pi: 600 },
+      {
+        ...defaultBuildConfig(DEFAULT_INPUT),
+        targetClass: "A",
+        targetPi: 800,
+      },
+    );
+    expect(
+      plan.warnings.some((warning) => warning.includes("two classes above native C")),
+    ).toBe(true);
+  });
+
+  it("explains the stronger FH6 dirt penalty for road compounds", () => {
+    const plan = generateBuildPlan(
+      { ...DEFAULT_INPUT, tuneMode: "Rally", surface: "Dirt" },
+      {
+        ...defaultBuildConfig(DEFAULT_INPUT),
+        tuneMode: "Rally",
+        surface: "Dirt",
+      },
+    );
+    const tire = plan.stages
+      .find((stage) => stage.id === "tires")
+      ?.upgrades.find((upgrade) => upgrade.tireCompound === "Rally");
+    expect(tire?.detail).toContain("lose substantially more grip on dirt");
+  });
+
   it("uses R as the current top class and migrates legacy X builds", () => {
     const input = {
       ...DEFAULT_INPUT,

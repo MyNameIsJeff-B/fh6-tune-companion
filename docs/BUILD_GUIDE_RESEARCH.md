@@ -2,6 +2,9 @@
 
 Laatst gecontroleerd: 11 juni 2026
 
+Foundation-audit verwerkt in appversie `0.5.0`, tune-engine
+`fh6-companion-0.4.0` en Build Guide `build-guide-0.4.0`.
+
 ## Productbesluit
 
 De Build Guide geeft een autospecifiek startprofiel plus een uitlegbaar
@@ -80,8 +83,13 @@ expliciete waarschuwing.
   Build Guide gebruikt dat onderscheid, maar blijft beschikbaarheid en PI-kosten
   per auto in de game laten bevestigen.
   Dezelfde gids onderbouwt dat hogere druk warmteopbouw afremt en lagere druk
-  koude banden sneller helpt opwarmen. De seizoenscorrectie blijft daarom beperkt
-  tot `0,05 bar` (`0,7 psi`) op de droge weg-baseline.
+  koude banden sneller helpt opwarmen. De droge weg-baseline gebruikt `+0,05 bar`
+  in Summer en `-0,10 bar` in Winter. De sterkere Winter-correctie volgt ook de
+  gecontroleerde EZG-test waarin tire temperatures en rondetijd op koud asfalt
+  duidelijk terugliepen.
+- [ForzaFire FH6 Platform & Handling](https://www.forzafire.com/guides/forza-horizon-6-platform-and-handling-tuning-guide)
+  ondersteunt conservatieve ARB-bereiken en het eerder inzetten van Race Brakes
+  bij snelle wegbuilds. De app adviseert Race Brakes daarom vanaf A-class op Road.
 - [QuickTune Pro](https://forzaquicktune.com/guides/) laat zien dat een
   build-assistent alle gekozen upgrades moet meenemen en ongeschikte combinaties
   moet signaleren. De publieke informatie bevestigt op 10 juni 2026 nog geen
@@ -98,9 +106,29 @@ expliciete waarschuwing.
 ### Open community
 
 - [OPTN Club](https://github.com/OPTN-Club/optn.club) is gebruikt als referentie
-  voor open, controleerbare build- en tunegegevens.
+  voor open, controleerbare build- en tunegegevens. Een afzonderlijke FH6-guide
+  is nog niet rechtstreeks opgehaald en blijft daarom een onderhoudspunt.
+- De FH6 `forza.guide` Tuning Cheat Sheet is de primaire open bron voor
+  sliderposities, bump/rebound-verhouding, gearing-workflow en Mechanical Balance.
+  De app gebruikt nu maximaal `50%` bump ten opzichte van rebound; de volledige
+  gewichtsgeleide damping- en springmodellen wachten op telemetry-validatie.
+- Forumthread `832103`, *FH6: The Physics of Tuning*, is als competitief
+  community-signaal bewaard. Claims over circa `1,1 bar` tire pressure en andere
+  exploit-meta worden alleen gelabeld getoond en niet als standaardwaarde gebruikt.
+- Apex Speed Craft bevestigt dat hogere Brake Balance-percentages in FH6 meer
+  front bias betekenen en dat de oude omgekeerde sliderbug is opgelost.
+- gamingpromax is gebruikt als aanvullend signaal voor het grotere belang van
+  Race Brakes en front tire width en voor de nieuwe Mechanical/Aero Balance-stats.
+- De gecontroleerde EZG Winter-test is gebruikt voor koud-asfaltgedrag:
+  lagere tire temperatures, minder mechanical grip en langere braking distances.
 - [TuneLab](https://github.com/super-android/tunelab) blijft de MIT-gelicentieerde
-  rekenbaseline. De Build Guide is een aparte lokale regelset.
+  rekenbaseline. TuneLab vermeldt zelf dat een deel van zijn physics-constanten
+  is vergeleken met gedecompileerde ForzaTune Pro-constanten. Deze app importeerde
+  de PI-frequency-polynomial niet; de resterende blootstelling zit vooral in de
+  legacy damping-ratio's en enkele modewaarden. De ratio is in deze sprint al
+  begrensd met openbare FH6-bronnen; volledige vervanging wacht op eigen telemetry.
+- F.A.T.T.Y is gebaseerd op forza.guide en andere reeds gebruikte bronnen. Het
+  geldt daarom als afgeleide implementatie, niet als onafhankelijke bevestiging.
 
 ### Lokale afgeleide kennislaag
 
@@ -128,12 +156,19 @@ expliciete waarschuwing.
 10. Controleer de uiteindelijke waarden altijd opnieuw in FH6.
 11. Gebruik seizoen als verwachte context, niet als garantie voor het exacte
     eventweer; ondergrond en eventtype blijven leidend.
+12. Waarschuw wanneer een target class minimaal twee klassen boven de native class
+    ligt; een native-class auto gebruikt het PI-budget doorgaans efficiënter.
+13. Houd front en rear toe standaard op `0,0°` in Horizon totdat een specifieke,
+    in-game bevestigde diagnose een afwijking rechtvaardigt.
+14. Bereken Final Drive met `3%` marge onder de limiter.
 
 ## Niet overgenomen
 
 - Geen commerciële database of preset is gekopieerd.
 - Geen review of marketingclaim wordt als bewijs voor een exacte formule gebruikt.
 - Geen AI-gegenereerde upgradebeschikbaarheid wordt als catalogusfeit opgeslagen.
+- De betwiste FH6 PI-caps en de definitie van R-class blijven ongewijzigd totdat
+  Jeff de class badges in-game heeft bevestigd.
 - De oude Motorsport-forumclaim over een 10× fout in metrische veerweergave geldt
   niet als bewezen FH6-feit. Ingevoerde sliderwaarden worden daarom letterlijk als
   gamewaarden behandeld en niet fysisch omgerekend.

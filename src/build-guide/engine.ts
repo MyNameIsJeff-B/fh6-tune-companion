@@ -15,8 +15,10 @@ import type {
 } from "./types";
 import { seasonProfile } from "../domain/seasons";
 
-export const BUILD_GUIDE_VERSION = "build-guide-0.3.1";
+export const BUILD_GUIDE_VERSION = "build-guide-0.4.0";
 
+// FH6 sources conflict on the post-launch PI caps, and R may be a type class
+// rather than a true 999-point band. Keep these caps until verified in-game.
 export const CLASS_CAPS: Record<string, number> = {
   D: 500,
   C: 600,
@@ -32,6 +34,7 @@ export const CLASS_CAPS: Record<string, number> = {
 export const BUILD_CLASS_OPTIONS = ["D", "C", "B", "A", "S1", "S2", "R"];
 
 const source = ["forzatune-guide", "quicktune-guide", "optn", "in-game"];
+const CLASS_ORDER = ["D", "C", "B", "A", "S1", "S2", "R"];
 
 const upgrade = (
   id: BuildUpgradeId,
@@ -115,7 +118,7 @@ const tireChoice = (
       id: "rally-tires",
       name: "Rally compound",
       tireCompound: "Rally",
-      detail: "Loose surfaces require the correct tire first.",
+      detail: "Loose surfaces require the correct tire first. Race Slicks and, to a lesser extent, Sport/Semi-Slick lose substantially more grip on dirt in FH6.",
     };
   }
   if (["D", "C"].includes(config.targetClass)) {
@@ -253,6 +256,9 @@ export function generateBuildPlan(
     config.surface === "Mixed" ||
     config.surface === "Snow" ||
     config.tuneMode === "Rally";
+  const roadRace =
+    config.surface === "Road" &&
+    !["Drag", "Drift"].includes(config.tuneMode);
   const transmission =
     ["Drag", "Drift", "Wangan"].includes(config.tuneMode) ||
     ["acceleration", "speed"].includes(config.focus) ||
@@ -379,13 +385,18 @@ export function generateBuildPlan(
       upgrade(
         "race-brakes",
         "Race Brakes",
-        "Most useful for heavy, fast cars and tracks with hard braking zones.",
+        "ForzaFire and gamingpromax report that FH6 road builds from A-class upward benefit strongly from consistent braking and reduced lock-up; verify the PI cost per car.",
         config.focus === "control" ||
           profileRequires("race_brakes") ||
+          (roadRace && ["A", "S1", "S2", "R", "X"].includes(config.targetClass)) ||
           ["S1", "S2", "R", "X"].includes(config.targetClass)
           ? "recommend"
           : "optional",
-        { capabilityPatch: { brakes: true }, confidence: 0.72 },
+        {
+          capabilityPatch: { brakes: true },
+          confidence: 0.78,
+          sourceIds: ["forzafire-platform", "in-game"],
+        },
       ),
       upgrade(
         "chassis-reinforcement",
@@ -474,6 +485,16 @@ export function generateBuildPlan(
   }
   if (config.targetPi < input.pi) {
     warnings.push("The target PI is below the current car; remove upgrades in FH6 first.");
+  }
+  const nativeClass = profile?.stockClass ?? input.carClass;
+  const nativeClassIndex = CLASS_ORDER.indexOf(nativeClass === "X" ? "R" : nativeClass);
+  const targetClassIndex = CLASS_ORDER.indexOf(
+    config.targetClass === "X" ? "R" : config.targetClass,
+  );
+  if (nativeClassIndex >= 0 && targetClassIndex >= nativeClassIndex + 2) {
+    warnings.push(
+      `Community build research: target class ${config.targetClass} is at least two classes above native ${nativeClass}; native-class cars usually use the PI budget more efficiently.`,
+    );
   }
   if (profile?.risks.includes("needs_in_game_weight_for_exact_springs")) {
     warnings.push("This car type needs confirmed in-game weight and spring ranges for exact spring values.");

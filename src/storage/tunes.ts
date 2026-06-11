@@ -82,5 +82,6 @@ export function tuneAsText(result: TuneResult) {
       );
       lines.push("");
     });
+  lines.push("Brake Balance: hogere % = meer front bias; 50% = gelijk.");
   return lines.join("\n");
 }
