@@ -585,6 +585,38 @@ function App() {
                     </label>
                   );
                 }
+                if (capability === "differential") {
+                  return (
+                    <label className="capability-row" key={capability}>
+                      <span>{capabilityLabels[capability]}</span>
+                      <select
+                        value={
+                          input.capabilities.differential === true
+                            ? "full"
+                            : input.capabilities.differential === false
+                              ? "none"
+                              : input.capabilities.differential
+                        }
+                        onChange={(event) =>
+                          setInput((current) => ({
+                            ...current,
+                            capabilities: {
+                              ...current.capabilities,
+                              differential: event.target.value as
+                                | "none"
+                                | "accel"
+                                | "full",
+                            },
+                          }))
+                        }
+                      >
+                        <option value="none">Niet verstelbaar</option>
+                        <option value="accel">Alleen acceleratie</option>
+                        <option value="full">Volledig</option>
+                      </select>
+                    </label>
+                  );
+                }
                 return (
                   <label className="capability-row" key={capability}>
                     <span>{capabilityLabels[capability]}</span>
@@ -849,6 +881,12 @@ function App() {
                   </strong>
                   {input.buildGuide.targetClass} {input.buildGuide.targetPi} ·{" "}
                   {input.buildGuide.selectedUpgradeIds.length} upgrades geselecteerd
+                  {" · Diff "}
+                  {input.capabilities.differential === true
+                    ? "full"
+                    : input.capabilities.differential === false
+                      ? "none"
+                      : input.capabilities.differential}
                   {input.buildGuide.valuesConfirmed
                     ? " · waarden gecontroleerd"
                     : " · waarden nog controleren"}

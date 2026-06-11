@@ -35,23 +35,47 @@ import type {
 } from "../build-guide/types";
 import { TUNE_MODES } from "../domain/defaults";
 import { SEASONS, seasonProfile } from "../domain/seasons";
-import type { Season, Surface, TuneInput, TuneMode } from "../domain/types";
+import type {
+  BuildCapabilities,
+  Season,
+  Surface,
+  TuneInput,
+  TuneMode,
+} from "../domain/types";
 import { Field, Segmented } from "./Field";
 
 const priorityLabel: Record<BuildPriority, string> = {
-  recommend: "Recommended",
-  optional: "Optional",
+  recommend: "Aanbevolen",
+  optional: "Optioneel",
   later: "Later",
-  avoid: "Avoid",
+  avoid: "Vermijden",
 };
 
 const focusOptions: Array<{ value: BuildFocus; label: string }> = [
-  { value: "balanced", label: "Balanced" },
+  { value: "balanced", label: "Balans" },
   { value: "grip", label: "Grip" },
-  { value: "acceleration", label: "Acceleration" },
-  { value: "speed", label: "Top Speed" },
-  { value: "control", label: "Control" },
+  { value: "acceleration", label: "Acceleratie" },
+  { value: "speed", label: "Topsnelheid" },
+  { value: "control", label: "Controle" },
 ];
+
+const capabilitySummary = (
+  patch?: Partial<BuildCapabilities>,
+): string | undefined => {
+  if (!patch) return undefined;
+  const unlocked: string[] = [];
+  if (patch.gearing === "final") unlocked.push("Final Drive");
+  if (patch.gearing === "full") unlocked.push("Full Gearing");
+  if (patch.differential === "accel") unlocked.push("Differential Acceleration");
+  if (patch.differential === "full") unlocked.push("Differential volledig");
+  if (patch.alignment) unlocked.push("Alignment");
+  if (patch.arb) unlocked.push("Anti-Roll Bars");
+  if (patch.springs) unlocked.push("Springs");
+  if (patch.damping) unlocked.push("Damping");
+  if (patch.brakes) unlocked.push("Brakes");
+  if (patch.aero) unlocked.push("Aero");
+  return unlocked.length ? unlocked.join(" / ") : undefined;
+};
 
 export function BuildGuide({
   input,
@@ -81,6 +105,10 @@ export function BuildGuide({
   const plan = useMemo(
     () => generateBuildPlan(input, config, profile),
     [input, config, profile],
+  );
+  const selectedCapabilities = useMemo(
+    () => applyBuildPlan(input, plan, selected).capabilities,
+    [input, plan, selected],
   );
 
   useEffect(() => {
@@ -143,7 +171,7 @@ export function BuildGuide({
         </div>
         <strong>{input.driveType}</strong>
         <span>{config.tuneMode}</span>
-        <small>{Math.round(plan.confidence * 100)}% confidence</small>
+        <small>{Math.round(plan.confidence * 100)}% vertrouwen</small>
       </div>
 
       <div className="build-guide__config">
@@ -151,7 +179,7 @@ export function BuildGuide({
           <span>02</span>
           <div>
             <h1>Build Guide</h1>
-            <p>Choose the job first. The guide then builds the upgrade order.</p>
+            <p>Kies eerst het doel. De guide bouwt daarna de upgradevolgorde.</p>
           </div>
         </div>
 
@@ -160,20 +188,20 @@ export function BuildGuide({
             <div className="build-profile__heading">
               <span>
                 <Sparkles size={18} />
-                Car Profile
+                Autoprofiel
               </span>
               <b>{profile.carType}</b>
             </div>
             <strong>{profile.note}</strong>
             <p>
-              Stock {profile.stockClass} {profile.stockPi} · {profile.stockDrive} ·
-              profile supports your selected discipline
+              Stock {profile.stockClass} {profile.stockPi} / {profile.stockDrive} /
+              profiel ondersteunt de gekozen discipline
             </p>
             <div className="build-profile__columns">
               <div>
                 <span>
                   <ListChecks size={15} />
-                  Car Baseline
+                  Auto-baseline
                 </span>
                 <ol>
                   {profile.order.slice(0, 5).map((item) => (
@@ -184,7 +212,7 @@ export function BuildGuide({
               <div>
                 <span>
                   <X size={15} />
-                  Avoid
+                  Vermijden
                 </span>
                 <ul>
                   {profile.avoid.map((item) => (
@@ -196,12 +224,12 @@ export function BuildGuide({
           </article>
         ) : (
           <p className="build-profile__fallback">
-            {profileError || "Generic profile active; no reliable car-specific match was found."}
+            {profileError || "Generiek profiel actief; er is geen betrouwbare autospecifieke match gevonden."}
           </p>
         )}
 
         <div className="field-grid">
-          <Field label="Target Class">
+          <Field label="Doelklasse">
             <select
               value={config.targetClass}
               onChange={(event) => {
@@ -217,7 +245,7 @@ export function BuildGuide({
               ))}
             </select>
           </Field>
-          <Field label="Target PI" hint="Confirm the final value in-game.">
+          <Field label="Doel-PI" hint="Bevestig de uiteindelijke waarde in-game.">
             <input
               type="number"
               min="100"
@@ -242,7 +270,7 @@ export function BuildGuide({
               ))}
             </select>
           </Field>
-          <Field label="Surface">
+          <Field label="Ondergrond">
             <select
               value={config.surface}
               onChange={(event) =>
@@ -255,7 +283,7 @@ export function BuildGuide({
               <option value="Snow">Snow</option>
             </select>
           </Field>
-          <Field label="Season">
+          <Field label="Seizoen">
             <select
               value={config.season}
               onChange={(event) =>
@@ -272,7 +300,7 @@ export function BuildGuide({
         </div>
 
         <Segmented<BuildFocus>
-          label="Build Priority"
+          label="Buildprioriteit"
           value={config.focus}
           options={focusOptions}
           onChange={(focus) => changeConfig({ focus })}
@@ -287,7 +315,7 @@ export function BuildGuide({
                 changeConfig({ keepStockEngine: event.target.checked })
               }
             />
-            Keep Stock Engine
+            Stock Engine behouden
           </label>
           <label>
             <input
@@ -297,7 +325,7 @@ export function BuildGuide({
                 changeConfig({ keepStockDrivetrain: event.target.checked })
               }
             />
-            Keep Stock Drivetrain
+            Stock Drivetrain behouden
           </label>
           <label>
             <input
@@ -307,7 +335,7 @@ export function BuildGuide({
                 changeConfig({ avoidAero: event.target.checked })
               }
             />
-            Avoid Visible Aero
+            Zichtbare Aero vermijden
           </label>
         </div>
       </div>
@@ -315,19 +343,47 @@ export function BuildGuide({
       <div className="build-guide__summary">
         <span>
           <Gauge size={19} />
-          Goal: <b>{focusOptions.find((item) => item.value === config.focus)?.label}</b>
+          Doel: <b>{focusOptions.find((item) => item.value === config.focus)?.label}</b>
         </span>
         <span>
-          PI Budget: <b>{plan.piBudget}</b>
+          PI-budget: <b>{plan.piBudget}</b>
         </span>
       </div>
 
       <div className="build-warning">
         <Info />
         <span>
-          <strong>{config.season} Conditions</strong>
+          <strong>{config.season}-omstandigheden</strong>
           {seasonProfile(config.season).conditions}{" "}
           {seasonProfile(config.season).guidance}
+        </span>
+      </div>
+
+      <div
+        className="build-alerts"
+        role="region"
+        aria-label="Buildwaarschuwingen"
+      >
+        <div className="build-alerts__heading">
+          <AlertTriangle size={18} />
+          <strong>Voor je onderdelen koopt</strong>
+        </div>
+        <ul>
+          {plan.warnings.map((warning) => (
+            <li key={warning}>{warning}</li>
+          ))}
+        </ul>
+      </div>
+
+      <div className="build-access">
+        <span>
+          <strong>Geselecteerde tuningtoegang</strong>
+          Gearing: {selectedCapabilities.gearing} / Differential:{" "}
+          {selectedCapabilities.differential === true
+            ? "full"
+            : selectedCapabilities.differential === false
+              ? "none"
+              : selectedCapabilities.differential}
         </span>
       </div>
 
@@ -371,6 +427,11 @@ export function BuildGuide({
                         <span>
                           <strong>{candidate.name}</strong>
                           <small>{candidate.detail}</small>
+                          {capabilitySummary(candidate.capabilityPatch) ? (
+                            <small className="upgrade-row__unlocks">
+                              Ontgrendelt: {capabilitySummary(candidate.capabilityPatch)}
+                            </small>
+                          ) : null}
                         </span>
                         <em className={`priority priority--${candidate.priority}`}>
                           {priorityLabel[candidate.priority]}
@@ -383,14 +444,14 @@ export function BuildGuide({
                                 ? "is-medium"
                                 : "is-low"
                           }`}
-                          title={`${Math.round(candidate.confidence * 100)}% confidence`}
+                          title={`${Math.round(candidate.confidence * 100)}% vertrouwen`}
                         />
                       </label>
                     );
                   })}
                   <p className="build-stage__selection">
                     <Check size={15} />
-                    {selectedCount} of {item.upgrades.length} selected
+                    {selectedCount} van {item.upgrades.length} geselecteerd
                   </p>
                 </div>
               ) : null}
@@ -402,9 +463,9 @@ export function BuildGuide({
       <div className="build-warning">
         <AlertTriangle />
         <span>
-          <strong>Confirm the build in-game</strong>
-          Upgrade availability and PI cost vary by car. Enter the actual PI, weight,
-          and weight distribution after installing the parts.
+          <strong>Bevestig de build in-game</strong>
+          Beschikbaarheid en PI-kosten verschillen per auto. Vul na montage de echte
+          PI, het gewicht en de weight distribution in.
         </span>
       </div>
 
@@ -415,10 +476,10 @@ export function BuildGuide({
       >
         <Info />
         <span>
-          <strong>Why this order?</strong>
+          <strong>Waarom deze volgorde?</strong>
           {profile
             ? `${profile.carType}: ${profile.note}`
-            : "Start with grip and adjustability, then weight and control, and add power and aero last."}
+            : "Begin met grip en instelbaarheid, daarna gewicht en controle, en voeg power en Aero als laatste toe."}
         </span>
         <BookOpen />
       </button>
@@ -447,15 +508,15 @@ export function BuildGuide({
       <div className="build-guide__actions">
         <button type="button" onClick={() => finish(false)}>
           <SlidersHorizontal />
-          Apply Build
+          Build toepassen
         </button>
         <button type="button" className="is-primary" onClick={() => finish(true)}>
           <Gauge />
-          Continue
+          Verder
         </button>
       </div>
       <button type="button" className="text-action" onClick={onManual}>
-        I already have a build, enter it manually
+        Ik heb al een build, handmatig invoeren
       </button>
     </section>
   );

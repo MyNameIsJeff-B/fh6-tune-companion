@@ -48,7 +48,7 @@ describe("build guide", () => {
     const plan = generateBuildPlan(DEFAULT_INPUT, config);
     expect(plan.stages).toHaveLength(6);
     expect(plan.stages.every((stage) => stage.upgrades.length > 0)).toBe(true);
-    expect(plan.warnings.some((warning) => warning.includes("PI cost"))).toBe(true);
+    expect(plan.warnings.some((warning) => warning.includes("PI kosten"))).toBe(true);
   });
 
   it.each(["FWD", "RWD", "AWD"] satisfies DriveType[])(
@@ -152,7 +152,9 @@ describe("build guide", () => {
       },
     );
     expect(
-      plan.warnings.some((warning) => warning.includes("two classes above native C")),
+      plan.warnings.some((warning) =>
+        warning.includes("minstens twee klassen boven native C"),
+      ),
     ).toBe(true);
   });
 
@@ -168,7 +170,7 @@ describe("build guide", () => {
     const tire = plan.stages
       .find((stage) => stage.id === "tires")
       ?.upgrades.find((upgrade) => upgrade.tireCompound === "Rally");
-    expect(tire?.detail).toContain("lose substantially more grip on dirt");
+    expect(tire?.detail).toContain("veel meer grip op dirt");
   });
 
   it("uses R as the current top class and migrates legacy X builds", () => {
@@ -266,7 +268,7 @@ describe("build guide", () => {
     });
     const upgrades = plan.stages.flatMap((stage) => stage.upgrades);
     expect(upgrades.find((upgrade) => upgrade.id === "widebody")?.detail).toContain(
-      "weight, drag, and PI",
+      "weight, drag en PI",
     );
     expect(upgrades.find((upgrade) => upgrade.id === "power-heavy")?.detail).toContain(
       "pre-swap baseline",
@@ -296,8 +298,8 @@ describe("build guide", () => {
         upgrade.id === "rally-tires" && upgrade.tireCompound === "Rally",
     );
     expect(rallyAlternative?.priority).toBe("optional");
-    expect(rallyAlternative?.name).toContain("PI-Efficient Alternative");
-    expect(rallyAlternative?.detail).toContain("Retune tire pressure");
+    expect(rallyAlternative?.name).toContain("PI-efficiënt alternatief");
+    expect(rallyAlternative?.detail).toContain("Tune tire pressure opnieuw");
   });
 
   it("warns about drivetrain and Drift-specific constraints", () => {
@@ -316,7 +318,7 @@ describe("build guide", () => {
     ).toBe(true);
     expect(
       lowClassSwap.warnings.some((warning) =>
-        warning.includes("Drift Zones require RWD"),
+        warning.includes("Drift Zones vereisen RWD"),
       ),
     ).toBe(true);
   });
@@ -382,9 +384,9 @@ describe("build guide", () => {
       { ...DEFAULT_INPUT, pi: 900 },
       { ...defaultBuildConfig(DEFAULT_INPUT), targetClass: "A", targetPi: 800 },
     );
-    expect(plan.warnings.some((warning) => warning.includes("below the current"))).toBe(
-      true,
-    );
+    expect(
+      plan.warnings.some((warning) => warning.includes("onder de huidige auto")),
+    ).toBe(true);
   });
 
   it("only references declared research sources", () => {

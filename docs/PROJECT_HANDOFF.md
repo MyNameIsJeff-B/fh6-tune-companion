@@ -7,7 +7,7 @@ Laatst bijgewerkt: 11 juni 2026
 FH6 Tune Companion `0.6.0` is een werkende mobiele PWA met:
 
 - auto zoeken of handmatig invoeren;
-- Engelstalige Build Guide met per-auto profiel, discipline, ondergrond,
+- Nederlandstalige Build Guide met per-auto profiel, discipline, ondergrond,
   aandrijving, klasse en focus;
 - 618 reproduceerbaar gegenereerde buildprofielen met upgradevolgorde en
   vermijd-lijst;
@@ -43,7 +43,11 @@ FH6 Tune Companion `0.6.0` is een werkende mobiele PWA met:
 - widebody-, drivetrain-, engine- en EV-swaptrade-offs;
 - EV/1-speed bescherming tegen ongeldige combustion gearing;
 - Rally compound als gelabeld Road-alternatief en extra front tire width-prioriteit
-  voor geschikte RWD A/S1-builds.
+  voor geschikte RWD A/S1-builds;
+- zichtbare aankoop- en onzekerheidswaarschuwingen vóór de upgradekeuze;
+- directe samenvatting van de tuningtoegang van geselecteerde onderdelen;
+- exclusieve keuze tussen Sport en volledige Differential-tier, ook in handmatige
+  invoer.
 
 Live:
 <https://mynameisjeff-b.github.io/fh6-tune-companion/>
@@ -151,7 +155,7 @@ Herstel vanaf cache `fh6-tune-v6`:
 Op 11 juni 2026 voor Build Guide `0.5.0`:
 
 - ESLint schoon.
-- 56 Vitest-tests geslaagd in de gezonde tijdelijke runtime.
+- 77 Vitest-tests geslaagd in de gezonde tijdelijke runtime.
 - Pages-productiebuild geslaagd.
 - `R`-klasse, oude `X`-migratie, profielvolgorde en Cross Country-banden zijn
   afgedekt met regressietests.
@@ -164,7 +168,8 @@ Op 11 juni 2026 voor Build Guide `0.5.0`:
 - Geen horizontale overflow op 320 px en geen consolefouten.
 - Gecontroleerde flow: 1992 Mazda RX-7 Type R toont het juiste profiel; wijziging
   naar Rally + Mixed houdt de gebruikerskeuze leidend en toont Rally suspension.
-- Engelse bronkaarten, confidence-labels en FH6-onderdeelnamen gecontroleerd.
+- Bronkaarten, Nederlandse confidence-labels en Engelse FH6-onderdeelnamen
+  gecontroleerd.
 - Service-worker cache `fh6-tune-v8` laadt de app, autodatabase en het RX-7-profiel
   na een volledig offline herladen.
 - Golden tests dekken lichte RWD, zware AWD en voor-zware FWD ARB-bereiken.
@@ -183,8 +188,14 @@ Op 11 juni 2026 voor Build Guide `0.5.0`:
 - De echte live URL is getest op 390 x 844: gewijzigde invoerflow, autodatabase,
   lokale fonts, assets, service worker en console zijn in orde.
 - Na een eerste online bezoek herlaadt de live app met autodatabase ook offline.
-- De uitgebreide research-backlog heeft 76 groene Vitest-tests, schone ESLint en
+- De uitgebreide research-backlog en Build Guide-UI hebben 77 groene Vitest-tests,
+  schone ESLint en
   een geslaagde Pages-build in de gezonde tijdelijke runtime.
+- De componenttest dekt zichtbare waarschuwingen, capability-labels en exclusieve
+  Sport/Race Differential-selectie.
+- Er is voor deze laatste UI-ronde geen nieuwe visuele browser-QA uitgevoerd,
+  omdat de ingebouwde Codex-browser nog steeds faalt met de bekende Windows
+  `CreateProcessWithLogonW`-fout.
 - Service-workercache `fh6-tune-v9` forceert een atomaire update naar app `0.6.0`.
 
 ### Foundation Fix Sprint A

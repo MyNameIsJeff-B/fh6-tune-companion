@@ -943,6 +943,12 @@ main {
   color: var(--muted);
 }
 
+.upgrade-row .upgrade-row__unlocks {
+  color: #16738b;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
 .upgrade-row .priority {
   max-width: 68px;
   text-align: right;
@@ -1003,6 +1009,71 @@ main {
   font-size: 11px;
   line-height: 1.45;
   color: var(--muted);
+}
+
+.build-alerts,
+.build-access {
+  width: calc(100% - 36px);
+  margin: 9px 18px 0;
+  padding: 13px;
+  background: white;
+  border: 1px solid #aaa;
+}
+
+.build-alerts {
+  border-left: 5px solid var(--pink);
+}
+
+.build-alerts__heading {
+  display: flex;
+  font-family: var(--display);
+  font-size: 17px;
+  font-style: italic;
+  text-transform: uppercase;
+  align-items: center;
+  gap: 8px;
+}
+
+.build-alerts__heading svg {
+  color: var(--pink);
+}
+
+.build-alerts ul {
+  margin: 9px 0 0;
+  padding-left: 18px;
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--muted);
+}
+
+.build-alerts li + li {
+  margin-top: 5px;
+}
+
+.build-access {
+  color: #d4f8ff;
+  background: var(--black);
+  border-color: var(--black);
+  border-left: 5px solid var(--cyan);
+}
+
+.build-access span,
+.build-access strong {
+  display: block;
+}
+
+.build-access span {
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+.build-access strong {
+  margin-bottom: 2px;
+  font-family: var(--display);
+  font-size: 16px;
+  font-style: italic;
+  color: white;
+  text-transform: uppercase;
 }
 
 .build-explainer > svg:first-child {
