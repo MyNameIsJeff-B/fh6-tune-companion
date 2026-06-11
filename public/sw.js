@@ -1,4 +1,4 @@
-const CACHE = "fh6-tune-v4";
+const CACHE = "fh6-tune-v5";
 const BASE = new URL(self.registration.scope).pathname;
 const fromBase = (path = "") => `${BASE}${path}`;
 const APP_SHELL = [

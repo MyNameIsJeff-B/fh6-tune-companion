@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { BuildGuide } from "./components/BuildGuide";
+import { BUILD_GUIDE_VERSION } from "./build-guide/engine";
 import { Modal } from "./components/Modal";
 import { Field, Segmented } from "./components/Field";
 import { ProgressRail } from "./components/ProgressRail";
@@ -22,9 +23,12 @@ import { TuneSections } from "./components/TuneSections";
 import { loadCars } from "./data/cars";
 import {
   ALL_CAPABILITIES,
+  BASELINE_VERSION,
   DEFAULT_INPUT,
+  ENGINE_VERSION,
   TUNE_MODES,
 } from "./domain/defaults";
+import packageJson from "../package.json";
 import type {
   Capability,
   CarRecord,
@@ -993,12 +997,17 @@ function App() {
             Xbox, Turn 10 of Playground Games.
           </p>
           <p className="modal-note">
-            TuneLab-baseline onder MIT-licentie. Actuele rekenbasis: 1.7.0.
+            <strong>App {packageJson.version}</strong>
+            <br />
+            Tune-engine {ENGINE_VERSION.replace("fh6-companion-", "")}
+            <br />
+            Build Guide {BUILD_GUIDE_VERSION.replace("build-guide-", "")}
           </p>
           <p className="modal-note">
-            Build Guide 0.2.0 combineert openbare gidsen en calculators met lokale,
-            versieerbare regels. Autospecifieke onderdelen en PI-kosten moeten in
-            FH6 worden gecontroleerd.
+            TuneLab-baseline {BASELINE_VERSION.replace("tunelab-", "")} onder
+            MIT-licentie. De Build Guide combineert openbare gidsen en calculators
+            met lokale, versieerbare regels. Autospecifieke onderdelen en PI-kosten
+            moeten in FH6 worden gecontroleerd.
           </p>
         </Modal>
       ) : null}
