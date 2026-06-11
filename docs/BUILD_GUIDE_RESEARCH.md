@@ -4,9 +4,17 @@ Laatst gecontroleerd: 11 juni 2026
 
 ## Productbesluit
 
-De Build Guide geeft een generiek, uitlegbaar upgradeplan op basis van discipline,
-ondergrond, doelklasse, aandrijving en voorkeur. De app beweert niet dat een
-onderdeel voor iedere auto beschikbaar is en rekent geen verzonnen PI-kosten uit.
+De Build Guide geeft een autospecifiek startprofiel plus een uitlegbaar
+upgradeplan op basis van discipline, ondergrond, doelklasse, aandrijving en
+voorkeur. De zichtbare Build Guide gebruikt Engelse FH6-termen om verwarring met
+de Engelstalige game-interface te voorkomen.
+
+De profielset wordt reproduceerbaar gegenereerd uit
+`data/derived/car_build_recommendations.csv` en bevat 618 profielen. Zij combineert
+officiële identiteit, TuneLab-basisdata, archetyperegels en lokale presets. Dit
+maakt strategie en volgorde autospecifiek, maar is nadrukkelijk geen exacte
+upgradecatalogus. Bronaliassen worden conservatief gematcht; onzekere varianten
+vallen terug op het algemene profiel.
 
 FH6 heeft voor zover publiek verifieerbaar geen officiële complete API voor:
 
@@ -70,6 +78,16 @@ expliciete waarschuwing.
   voor open, controleerbare build- en tunegegevens.
 - [TuneLab](https://github.com/super-android/tunelab) blijft de MIT-gelicentieerde
   rekenbaseline. De Build Guide is een aparte lokale regelset.
+
+### Lokale afgeleide kennislaag
+
+- `car_build_recommendations.csv` levert per auto het archetype, waarschijnlijke
+  rollen, aanbevolen upgradevolgorde, benodigde verstelbaarheid, optionele
+  onderdelen, vermijd-lijst en risicovlaggen.
+- `scripts/generate-build-profiles.mjs` zet deze bron om naar
+  `public/data/build-profiles.json`.
+- De app gebruikt deze informatie alleen als strategie- en prioriteitslaag.
+  Exacte beschikbaarheid, PI-kosten en eindwaarden blijven in-game controles.
 
 ## Regelhiërarchie
 

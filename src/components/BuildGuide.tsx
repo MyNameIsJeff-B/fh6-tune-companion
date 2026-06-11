@@ -6,9 +6,12 @@ import {
   ExternalLink,
   Gauge,
   Info,
+  ListChecks,
   SlidersHorizontal,
+  Sparkles,
+  X,
 } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   CLASS_CAPS,
   applyBuildPlan,
@@ -17,7 +20,13 @@ import {
   generateBuildPlan,
 } from "../build-guide/engine";
 import { BUILD_SOURCES } from "../build-guide/sources";
+import {
+  buildProfileLabel,
+  findBuildProfile,
+  loadBuildProfiles,
+} from "../build-guide/profiles";
 import type {
+  BuildCarProfile,
   BuildFocus,
   BuildGuideConfig,
   BuildPriority,
@@ -28,18 +37,18 @@ import type { Surface, TuneInput, TuneMode } from "../domain/types";
 import { Field, Segmented } from "./Field";
 
 const priorityLabel: Record<BuildPriority, string> = {
-  recommend: "Aanraden",
-  optional: "Optioneel",
+  recommend: "Recommended",
+  optional: "Optional",
   later: "Later",
-  avoid: "Vermijden",
+  avoid: "Avoid",
 };
 
 const focusOptions: Array<{ value: BuildFocus; label: string }> = [
-  { value: "balanced", label: "Balans" },
+  { value: "balanced", label: "Balanced" },
   { value: "grip", label: "Grip" },
-  { value: "acceleration", label: "Acceleratie" },
-  { value: "speed", label: "Topsnelheid" },
-  { value: "control", label: "Controle" },
+  { value: "acceleration", label: "Acceleration" },
+  { value: "speed", label: "Top Speed" },
+  { value: "control", label: "Control" },
 ];
 
 export function BuildGuide({
@@ -60,11 +69,33 @@ export function BuildGuide({
   );
   const [openStage, setOpenStage] = useState("foundation");
   const [showSources, setShowSources] = useState(false);
-  const plan = useMemo(() => generateBuildPlan(input, config), [input, config]);
+  const [profiles, setProfiles] = useState<BuildCarProfile[]>([]);
+  const [profileError, setProfileError] = useState("");
+  const appliedProfileDefaults = useRef(false);
+  const profile = useMemo(
+    () => findBuildProfile(profiles, input),
+    [profiles, input],
+  );
+  const plan = useMemo(
+    () => generateBuildPlan(input, config, profile),
+    [input, config, profile],
+  );
+
+  useEffect(() => {
+    loadBuildProfiles().then(setProfiles).catch((error: Error) => {
+      setProfileError(error.message);
+    });
+  }, []);
+
+  useEffect(() => {
+    if (!profile || appliedProfileDefaults.current) return;
+    setSelected(defaultSelectedUpgrades(plan));
+    appliedProfileDefaults.current = true;
+  }, [plan, profile]);
 
   const changeConfig = (patch: Partial<BuildGuideConfig>) => {
     const nextConfig = { ...config, ...patch };
-    const nextPlan = generateBuildPlan(input, nextConfig);
+    const nextPlan = generateBuildPlan(input, nextConfig, profile);
     setConfig(nextConfig);
     setSelected(defaultSelectedUpgrades(nextPlan));
   };
@@ -90,7 +121,7 @@ export function BuildGuide({
         </div>
         <strong>{input.driveType}</strong>
         <span>{config.tuneMode}</span>
-        <small>{Math.round(plan.confidence * 100)}% vertrouwen</small>
+        <small>{Math.round(plan.confidence * 100)}% confidence</small>
       </div>
 
       <div className="build-guide__config">
@@ -98,12 +129,57 @@ export function BuildGuide({
           <span>02</span>
           <div>
             <h1>Build Guide</h1>
-            <p>Kies eerst wat de auto moet doen. Daarna bouwen we de upgradevolgorde.</p>
+            <p>Choose the job first. The guide then builds the upgrade order.</p>
           </div>
         </div>
 
+        {profile ? (
+          <article className="build-profile">
+            <div className="build-profile__heading">
+              <span>
+                <Sparkles size={18} />
+                Car Profile
+              </span>
+              <b>{profile.carType}</b>
+            </div>
+            <strong>{profile.note}</strong>
+            <p>
+              Stock {profile.stockClass} {profile.stockPi} · {profile.stockDrive} ·
+              profile supports your selected discipline
+            </p>
+            <div className="build-profile__columns">
+              <div>
+                <span>
+                  <ListChecks size={15} />
+                  Suggested Order
+                </span>
+                <ol>
+                  {profile.order.slice(0, 5).map((item) => (
+                    <li key={item}>{buildProfileLabel(item)}</li>
+                  ))}
+                </ol>
+              </div>
+              <div>
+                <span>
+                  <X size={15} />
+                  Avoid
+                </span>
+                <ul>
+                  {profile.avoid.map((item) => (
+                    <li key={item}>{buildProfileLabel(item)}</li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          </article>
+        ) : (
+          <p className="build-profile__fallback">
+            {profileError || "Generic profile active; no reliable car-specific match was found."}
+          </p>
+        )}
+
         <div className="field-grid">
-          <Field label="Doelklasse">
+          <Field label="Target Class">
             <select
               value={config.targetClass}
               onChange={(event) => {
@@ -119,7 +195,7 @@ export function BuildGuide({
               ))}
             </select>
           </Field>
-          <Field label="Doel PI" hint="Pas later aan naar de echte waarde in de game.">
+          <Field label="Target PI" hint="Confirm the final value in-game.">
             <input
               type="number"
               min="100"
@@ -144,23 +220,23 @@ export function BuildGuide({
               ))}
             </select>
           </Field>
-          <Field label="Ondergrond">
+          <Field label="Surface">
             <select
               value={config.surface}
               onChange={(event) =>
                 changeConfig({ surface: event.target.value as Surface })
               }
             >
-              <option value="Road">Asfalt</option>
+              <option value="Road">Road</option>
               <option value="Dirt">Dirt</option>
-              <option value="Mixed">Gemengd</option>
-              <option value="Snow">Sneeuw</option>
+              <option value="Mixed">Mixed</option>
+              <option value="Snow">Snow</option>
             </select>
           </Field>
         </div>
 
         <Segmented<BuildFocus>
-          label="Prioriteit"
+          label="Build Priority"
           value={config.focus}
           options={focusOptions}
           onChange={(focus) => changeConfig({ focus })}
@@ -175,7 +251,7 @@ export function BuildGuide({
                 changeConfig({ keepStockEngine: event.target.checked })
               }
             />
-            Standaardmotor behouden
+            Keep Stock Engine
           </label>
           <label>
             <input
@@ -185,7 +261,7 @@ export function BuildGuide({
                 changeConfig({ keepStockDrivetrain: event.target.checked })
               }
             />
-            Aandrijving behouden
+            Keep Stock Drivetrain
           </label>
           <label>
             <input
@@ -195,7 +271,7 @@ export function BuildGuide({
                 changeConfig({ avoidAero: event.target.checked })
               }
             />
-            Geen zichtbare aero
+            Avoid Visible Aero
           </label>
         </div>
       </div>
@@ -203,10 +279,10 @@ export function BuildGuide({
       <div className="build-guide__summary">
         <span>
           <Gauge size={19} />
-          Doel: <b>{focusOptions.find((item) => item.value === config.focus)?.label}</b>
+          Goal: <b>{focusOptions.find((item) => item.value === config.focus)?.label}</b>
         </span>
         <span>
-          PI-budget: <b>{plan.piBudget}</b>
+          PI Budget: <b>{plan.piBudget}</b>
         </span>
       </div>
 
@@ -262,14 +338,14 @@ export function BuildGuide({
                                 ? "is-medium"
                                 : "is-low"
                           }`}
-                          title={`${Math.round(candidate.confidence * 100)}% vertrouwen`}
+                          title={`${Math.round(candidate.confidence * 100)}% confidence`}
                         />
                       </label>
                     );
                   })}
                   <p className="build-stage__selection">
                     <Check size={15} />
-                    {selectedCount} van {item.upgrades.length} geselecteerd
+                    {selectedCount} of {item.upgrades.length} selected
                   </p>
                 </div>
               ) : null}
@@ -281,9 +357,9 @@ export function BuildGuide({
       <div className="build-warning">
         <AlertTriangle />
         <span>
-          <strong>Controleer PI in de game</strong>
-          Upgradeprijzen en beschikbaarheid verschillen per auto. Vul na montage de
-          echte PI, het gewicht en de verdeling in.
+          <strong>Confirm the build in-game</strong>
+          Upgrade availability and PI cost vary by car. Enter the actual PI, weight,
+          and weight distribution after installing the parts.
         </span>
       </div>
 
@@ -294,9 +370,10 @@ export function BuildGuide({
       >
         <Info />
         <span>
-          <strong>Waarom deze volgorde?</strong>
-          Eerst grip en instelbaarheid, dan gewicht en controle, daarna pas vermogen
-          en aero.
+          <strong>Why this order?</strong>
+          {profile
+            ? `${profile.carType}: ${profile.note}`
+            : "Start with grip and adjustability, then weight and control, and add power and aero last."}
         </span>
         <BookOpen />
       </button>
@@ -325,15 +402,15 @@ export function BuildGuide({
       <div className="build-guide__actions">
         <button type="button" onClick={() => finish(false)}>
           <SlidersHorizontal />
-          Build toepassen
+          Apply Build
         </button>
         <button type="button" className="is-primary" onClick={() => finish(true)}>
           <Gauge />
-          Naar doel
+          Continue
         </button>
       </div>
       <button type="button" className="text-action" onClick={onManual}>
-        Ik heb al een build, handmatig invoeren
+        I already have a build, enter it manually
       </button>
     </section>
   );

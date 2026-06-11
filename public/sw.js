@@ -1,11 +1,12 @@
 const CACHE_PREFIX = "fh6-tune-";
-const CACHE = `${CACHE_PREFIX}v6`;
+const CACHE = `${CACHE_PREFIX}v7`;
 const BASE = new URL(self.registration.scope).pathname;
 const fromBase = (path = "") => `${BASE}${path}`;
 const CORE_ASSETS = [
   "manifest.webmanifest",
   "icon.svg",
   "data/cars.json",
+  "data/build-profiles.json",
   "fonts/barlow-condensed-500.ttf",
   "fonts/barlow-condensed-600.ttf",
   "fonts/barlow-condensed-700.ttf",

@@ -4,10 +4,13 @@ Laatst bijgewerkt: 11 juni 2026
 
 ## Huidige status
 
-FH6 Tune Companion `0.3.0` is een werkende mobiele PWA met:
+FH6 Tune Companion `0.4.0` is een werkende mobiele PWA met:
 
 - auto zoeken of handmatig invoeren;
-- Build Guide op discipline, ondergrond, aandrijving, klasse en focus;
+- Engelstalige Build Guide met per-auto profiel, discipline, ondergrond,
+  aandrijving, klasse en focus;
+- 618 reproduceerbaar gegenereerde buildprofielen met upgradevolgorde en
+  vermijd-lijst;
 - Quick en Advanced invoer;
 - acht tune-modi;
 - verbeterd advies plus optionele TuneLab-vergelijking;
@@ -31,10 +34,10 @@ Repository:
 
 | Onderdeel | Versie |
 | --- | --- |
-| App | `0.3.0` |
+| App | `0.4.0` |
 | Eigen tune-engine | `fh6-companion-0.3.0` |
 | TuneLab-baseline | `tunelab-1.7.0` |
-| Build Guide | `build-guide-0.2.0` |
+| Build Guide | `build-guide-0.3.0` |
 | Catalogus | `tunelab-v7+fh6-local-2026-06-10` |
 | Lokale opslag | `fh6-tune-companion:v1:tunes` |
 
@@ -60,18 +63,25 @@ Guide staan daar los van. Zie `licenses/TUNELAB-MIT.txt` en
 ## Datastroom
 
 1. `src/data/cars.ts` laadt `public/data/cars.json`.
-2. De gebruiker kiest een auto en configureert of importeert een build.
-3. `src/build-guide/engine.ts` maakt een upgradeplan en leidt capabilities af.
-4. `src/engine/baseline.ts` maakt het TuneLab-resultaat.
-5. `src/engine/improved.ts` past expliciete eigen correcties toe.
-6. `src/engine/summaries.ts` ververst alle zichtbare samenvattingen.
-7. `src/engine/diagnosis.ts` maakt op rijfeedback een nieuwe revisie.
-8. `src/storage/tunes.ts` bewaart maximaal 50 tunes in `localStorage`.
-9. `src/storage/carOverrides.ts` bewaart bevestigde veer-slidergrenzen per auto.
+2. `src/build-guide/profiles.ts` koppelt de auto conservatief aan
+   `public/data/build-profiles.json`.
+3. De gebruiker kiest discipline, klasse, focus en buildbeperkingen.
+4. `src/build-guide/engine.ts` combineert profiel en keuzes tot een upgradeplan en
+   leidt capabilities af.
+5. `src/engine/baseline.ts` maakt het TuneLab-resultaat.
+6. `src/engine/improved.ts` past expliciete eigen correcties toe.
+7. `src/engine/summaries.ts` ververst alle zichtbare samenvattingen.
+8. `src/engine/diagnosis.ts` maakt op rijfeedback een nieuwe revisie.
+9. `src/storage/tunes.ts` bewaart maximaal 50 tunes in `localStorage`.
+10. `src/storage/carOverrides.ts` bewaart bevestigde veer-slidergrenzen per auto.
 
 ## Bewust bekende beperkingen
 
 - De auto-catalogus bevat geen betrouwbare volledige upgradeset per auto.
+- De 618 buildprofielen zijn afgeleide strategieprofielen. Zij bewijzen geen
+  onderdeelbeschikbaarheid of PI-kosten.
+- De gebundelde catalogus bevat bronvarianten en aliassen. Betrouwbare matches
+  krijgen een autoprofiel; onzekere varianten vallen terug op generiek advies.
 - PI-kosten, eindgewicht, gewichtsverdeling en sliderbereiken moeten in FH6 worden
   gecontroleerd.
 - Zonder bevestigde veergrenzen toont de app alleen een percentage van het
@@ -113,16 +123,26 @@ Herstel vanaf cache `fh6-tune-v6`:
 
 ## Laatst uitgevoerde kwaliteitscontrole
 
-Op 11 juni 2026 voor Sprint 2:
+Op 11 juni 2026 voor Build Guide `0.3.0`:
 
 - ESLint schoon.
-- 45 Vitest-tests geslaagd.
+- 51 Vitest-tests geslaagd in de gezonde tijdelijke runtime.
 - Pages-productiebuild geslaagd.
+- Profielgenerator levert 618 versieerbare buildprofielen.
+- Dekkingstest koppelt 610 van 642 gebundelde catalogusregels betrouwbaar; 32
+  onzekere bronvarianten vallen terug op generiek advies.
+- Mobiele Build Guide gecontroleerd op 390 x 844 en 320 x 844.
+- Geen horizontale overflow op 320 px en geen consolefouten.
+- Gecontroleerde flow: 1992 Mazda RX-7 Type R toont het juiste profiel; wijziging
+  naar Rally + Mixed houdt de gebruikerskeuze leidend en toont Rally suspension.
+- Engelse bronkaarten, confidence-labels en FH6-onderdeelnamen gecontroleerd.
+- Service-worker cache `fh6-tune-v7` laadt de app, autodatabase en het RX-7-profiel
+  na een volledig offline herladen.
 - Golden tests dekken lichte RWD, zware AWD en voor-zware FWD ARB-bereiken.
 - Veerinterpolatie, FWD-omkering, ontbrekende/ongeldige grenzen, Quick/Advanced
   gearing en oude JSON-import zijn afgedekt.
-- Build uitgevoerd in `C:\tmp` omdat npm-installatie in de Google Drive-map door
-  bestandslocks beschadigd raakte.
+- Build en echte testuitvoer uitgevoerd in `C:\tmp` omdat de npm-shims in de
+  Google Drive-map beschadigd zijn en daar processen alleen schijnbaar starten.
 - Lokale browsercontrole geslaagd op 390 x 844 en 320 x 844 zonder horizontale
   overflow of consolefouten.
 - Gecontroleerde flow: per-auto veergrenzen bewaren, Quick zonder gearing,

@@ -8,6 +8,25 @@ import {
   generateBuildPlan,
 } from "./engine";
 import { BUILD_SOURCES } from "./sources";
+import type { BuildCarProfile } from "./types";
+
+const RX7_PROFILE: BuildCarProfile = {
+  year: "1992",
+  make: "Mazda",
+  model: "RX-7 Type R",
+  carType: "Retro Sports Cars",
+  stockClass: "B",
+  stockPi: 548,
+  stockDrive: "RWD",
+  preset: "touge_jdm_a",
+  roles: ["touge_or_drift_project"],
+  order: ["tires", "brakes", "weight", "suspension/ARB", "diff"],
+  required: ["race_springs", "ARB", "race_diff", "final_drive"],
+  optional: ["street/semi-slick", "race brakes"],
+  avoid: ["huge turbo lag", "top-speed gearing"],
+  note: "Braking and exit control beat peak power",
+  risks: ["needs_in_game_weight_for_exact_springs"],
+};
 
 describe("build guide", () => {
   it.each([
@@ -28,7 +47,7 @@ describe("build guide", () => {
     const plan = generateBuildPlan(DEFAULT_INPUT, config);
     expect(plan.stages).toHaveLength(6);
     expect(plan.stages.every((stage) => stage.upgrades.length > 0)).toBe(true);
-    expect(plan.warnings.some((warning) => warning.includes("PI-kosten"))).toBe(true);
+    expect(plan.warnings.some((warning) => warning.includes("PI cost"))).toBe(true);
   });
 
   it.each(["FWD", "RWD", "AWD"] satisfies DriveType[])(
@@ -148,7 +167,7 @@ describe("build guide", () => {
       { ...DEFAULT_INPUT, pi: 900 },
       { ...defaultBuildConfig(DEFAULT_INPUT), targetClass: "A", targetPi: 800 },
     );
-    expect(plan.warnings.some((warning) => warning.includes("onder de huidige"))).toBe(
+    expect(plan.warnings.some((warning) => warning.includes("below the current"))).toBe(
       true,
     );
   });
@@ -176,5 +195,33 @@ describe("build guide", () => {
       defaultSelectedUpgrades(plan),
     );
     expect(defaultBuildConfig(applied)).toEqual(config);
+  });
+
+  it("adds a matched car profile without replacing the selected discipline", () => {
+    const config = {
+      ...defaultBuildConfig(DEFAULT_INPUT),
+      tuneMode: "Rally" as const,
+      surface: "Mixed" as const,
+    };
+    const plan = generateBuildPlan(DEFAULT_INPUT, config, RX7_PROFILE);
+    expect(plan.profile?.preset).toBe("touge_jdm_a");
+    expect(plan.config.tuneMode).toBe("Rally");
+    expect(plan.stages.find((stage) => stage.id === "chassis")?.upgrades[0].id).toBe(
+      "rally-suspension",
+    );
+    expect(plan.confidence).toBeGreaterThan(0.8);
+  });
+
+  it("uses off-road suspension for a cross-country car profile", () => {
+    const profile = { ...RX7_PROFILE, preset: "cross_country_a_s1" };
+    const config = {
+      ...defaultBuildConfig(DEFAULT_INPUT),
+      tuneMode: "Rally" as const,
+      surface: "Mixed" as const,
+    };
+    const plan = generateBuildPlan(DEFAULT_INPUT, config, profile);
+    expect(plan.stages.find((stage) => stage.id === "chassis")?.upgrades[0].id).toBe(
+      "offroad-suspension",
+    );
   });
 });

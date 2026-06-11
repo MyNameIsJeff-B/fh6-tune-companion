@@ -35,6 +35,7 @@ export type BuildUpgradeId =
   | "weight-3"
   | "race-suspension"
   | "rally-suspension"
+  | "offroad-suspension"
   | "drift-suspension"
   | "race-brakes"
   | "chassis-reinforcement"
@@ -73,6 +74,31 @@ export interface BuildStage {
   upgrades: BuildUpgrade[];
 }
 
+export interface BuildCarProfile {
+  year: string;
+  make: string;
+  model: string;
+  carType: string;
+  stockClass: string;
+  stockPi: number;
+  stockDrive: DriveType;
+  preset: string;
+  roles: string[];
+  order: string[];
+  required: string[];
+  optional: string[];
+  avoid: string[];
+  note: string;
+  risks: string[];
+}
+
+export interface RawBuildProfilesFile {
+  version: string;
+  source: string;
+  generated: string;
+  profiles: BuildCarProfile[];
+}
+
 export interface BuildPlan {
   version: string;
   config: BuildGuideConfig;
@@ -81,6 +107,7 @@ export interface BuildPlan {
   piBudget: number;
   confidence: number;
   warnings: string[];
+  profile?: BuildCarProfile;
   stages: BuildStage[];
 }
 

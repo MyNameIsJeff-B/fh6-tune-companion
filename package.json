@@ -1,9 +1,11 @@
 {
   "name": "fh6-tune-companion",
   "private": true,
-  "version": "0.3.0",
+  "version": "0.4.0",
   "type": "module",
   "scripts": {
+    "data:build-profiles": "node scripts/generate-build-profiles.mjs",
+    "data:check-build-profiles": "node scripts/check-build-profile-coverage.mjs",
     "dev": "vite",
     "build": "tsc -b && vite build",
     "preview": "vite preview",

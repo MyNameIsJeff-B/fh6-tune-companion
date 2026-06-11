@@ -6,6 +6,7 @@ import type {
 import type {
   AppliedBuildGuide,
   BuildGuideConfig,
+  BuildCarProfile,
   BuildPlan,
   BuildPriority,
   BuildStage,
@@ -13,7 +14,7 @@ import type {
   BuildUpgradeId,
 } from "./types";
 
-export const BUILD_GUIDE_VERSION = "build-guide-0.2.0";
+export const BUILD_GUIDE_VERSION = "build-guide-0.3.0";
 
 export const CLASS_CAPS: Record<string, number> = {
   D: 500,
@@ -60,7 +61,7 @@ const tireChoice = (
       id: "snow-tires",
       name: "Snow compound",
       tireCompound: "Snow",
-      detail: "Grip op sneeuw gaat vóór extra vermogen.",
+      detail: "Snow grip comes before extra power.",
     };
   }
   if (config.tuneMode === "Drag") {
@@ -68,7 +69,7 @@ const tireChoice = (
       id: "drag-tires",
       name: "Drag compound",
       tireCompound: "Drag",
-      detail: "Maximaliseer tractie bij de launch.",
+      detail: "Maximise traction at launch.",
     };
   }
   if (config.tuneMode === "Drift") {
@@ -76,7 +77,7 @@ const tireChoice = (
       id: "drift-tires",
       name: "Drift compound",
       tireCompound: "Drift",
-      detail: "Voorspelbare sliphoek en temperatuur.",
+      detail: "Prioritise predictable slip angle and tire temperature.",
     };
   }
   if (config.surface === "Dirt" || config.surface === "Mixed" || config.tuneMode === "Rally") {
@@ -84,7 +85,7 @@ const tireChoice = (
       id: "rally-tires",
       name: "Rally compound",
       tireCompound: "Rally",
-      detail: "Losse ondergrond vraagt eerst om de juiste band.",
+      detail: "Loose surfaces require the correct tire first.",
     };
   }
   if (["D", "C"].includes(config.targetClass)) {
@@ -92,7 +93,7 @@ const tireChoice = (
       id: "street-tires",
       name: "Street compound",
       tireCompound: "Street",
-      detail: "Behoud PI voor gewicht en balans; voorkom over-tyring.",
+      detail: "Save PI for weight and balance; avoid over-tyring the car.",
     };
   }
   if (config.targetClass === "B") {
@@ -100,7 +101,7 @@ const tireChoice = (
       id: "sport-tires",
       name: "Sport compound",
       tireCompound: "Sport",
-      detail: "Sterke gripwinst zonder het hele PI-budget op te eten.",
+      detail: "Strong grip gain without spending the entire PI budget.",
     };
   }
   if (["A", "S1"].includes(config.targetClass)) {
@@ -108,14 +109,14 @@ const tireChoice = (
       id: "semi-slick-tires",
       name: "Race semi-slick",
       tireCompound: "Race Semi-Slick",
-      detail: "Geschikt startpunt voor snelle weg- en circuitbuilds.",
+      detail: "A suitable starting point for fast road and circuit builds.",
     };
   }
   return {
     id: "slick-tires",
     name: "Race slick",
     tireCompound: "Race Slick",
-    detail: "Hoge klasse en snelheid vragen om maximale asfaltgrip.",
+    detail: "High classes and speed demand maximum road grip.",
   };
 };
 
@@ -123,8 +124,8 @@ const widthUpgrade = (driveType: DriveType): BuildUpgrade => {
   if (driveType === "FWD") {
     return upgrade(
       "front-width",
-      "Voorbanden eerst verbreden",
-      "De vooras stuurt én brengt vermogen over. Vergroot achter alleen als balans of PI dat vraagt.",
+      "Widen Front Tires First",
+      "The front axle steers and delivers power. Widen the rear only when balance or PI requires it.",
       "recommend",
       { confidence: 0.78 },
     );
@@ -132,16 +133,16 @@ const widthUpgrade = (driveType: DriveType): BuildUpgrade => {
   if (driveType === "RWD") {
     return upgrade(
       "rear-width",
-      "Achterbanden eerst verbreden",
-      "Meer tractie uit bochten; voeg voorbreedte toe als turn-in of remgrip tekortschiet.",
+      "Widen Rear Tires First",
+      "Improves corner-exit traction. Add front width if turn-in or braking grip is lacking.",
       "recommend",
       { confidence: 0.78 },
     );
   }
   return upgrade(
     "balanced-width",
-    "Breedte gebalanceerd verhogen",
-    "AWD verdeelt de aandrijving; voorkom een extreem verschil tussen voor en achter.",
+    "Increase Width Evenly",
+    "AWD distributes power across both axles; avoid an extreme front-to-rear width difference.",
     "recommend",
     { confidence: 0.75 },
   );
@@ -151,8 +152,8 @@ const weightUpgrades = (targetClass: string): BuildUpgrade[] => {
   const items = [
     upgrade(
       "weight-1",
-      "Gewichtsreductie Stage 1",
-      "Verbetert remmen, acceleratie en richtingsverandering tegelijk.",
+      "Weight Reduction Stage 1",
+      "Improves braking, acceleration, and direction changes at the same time.",
       "recommend",
       { confidence: 0.82, sourceIds: ["forzatune-guide", "optn", "in-game"] },
     ),
@@ -161,8 +162,8 @@ const weightUpgrades = (targetClass: string): BuildUpgrade[] => {
     items.push(
       upgrade(
         "weight-2",
-        "Gewichtsreductie Stage 2",
-        "Neem deze als de PI-winst gunstiger blijft dan extra motorvermogen.",
+        "Weight Reduction Stage 2",
+        "Choose this while its PI value remains better than adding engine power.",
         "recommend",
       ),
     );
@@ -171,8 +172,8 @@ const weightUpgrades = (targetClass: string): BuildUpgrade[] => {
     items.push(
       upgrade(
         "weight-3",
-        "Gewichtsreductie Stage 3",
-        "Alleen kiezen als de auto niet te nerveus wordt en de PI-kosten kloppen.",
+        "Weight Reduction Stage 3",
+        "Use only if the car does not become nervous and the PI cost makes sense.",
         "optional",
         { confidence: 0.62 },
       ),
@@ -204,7 +205,14 @@ export function defaultBuildConfig(input: TuneInput): BuildGuideConfig {
 export function generateBuildPlan(
   input: TuneInput,
   config: BuildGuideConfig,
+  profile?: BuildCarProfile,
 ): BuildPlan {
+  const profileRequires = (term: string) =>
+    profile?.required.some((item) => item.toLowerCase().includes(term)) ?? false;
+  const profileAvoids = (...terms: string[]) =>
+    profile?.avoid.some((item) =>
+      terms.some((term) => item.toLowerCase().includes(term)),
+    ) ?? false;
   const tire = tireChoice(config);
   const offroad =
     config.surface === "Dirt" ||
@@ -218,39 +226,39 @@ export function generateBuildPlan(
       ? upgrade(
           "race-transmission",
           "Race transmission",
-          "Volledige gearing is nuttig bij grote vermogens- of snelheidsverschillen.",
+          "Full gearing is useful for major power or top-speed changes.",
           "recommend",
           { capabilityPatch: { gearing: "full" }, confidence: 0.76 },
         )
       : upgrade(
           "sport-transmission",
           "Sport transmission",
-          "Eindoverbrenging verstelbaar zonder onnodig veel complexiteit.",
+          "Adjustable Final Drive without unnecessary complexity.",
           "recommend",
           { capabilityPatch: { gearing: "final" }, confidence: 0.76 },
         );
 
   const foundation = stage(
     "foundation",
-    "Basis",
-    "Ontgrendel eerst de goedkope, invloedrijke afstellingen.",
+    "Foundation",
+    "Unlock the inexpensive, high-impact adjustments first.",
     "recommend",
     [
       upgrade(
         "differential",
         "Race differential",
-        `${input.driveType}: tractie en bochtuitgang worden gericht afstelbaar.`,
+        `${input.driveType}: directly adjust traction and corner exit.`,
         "recommend",
         { capabilityPatch: { differential: true }, confidence: 0.86 },
       ),
       transmission,
       upgrade(
         "arb",
-        offroad ? "Verstelbare ARB" : "Race ARB voor & achter",
+        offroad ? "Adjustable Anti-Roll Bars" : "Race Front & Rear Anti-Roll Bars",
         offroad
-          ? "Optioneel op losse ondergrond; te stijve stangen kosten onafhankelijk wielcontact."
-          : "De snelste eerste correctie voor middenbochtbalans.",
-        offroad ? "optional" : "recommend",
+          ? "Optional on loose surfaces; excessive stiffness reduces independent wheel contact."
+          : "The fastest first correction for mid-corner balance.",
+        offroad && !profileRequires("arb") ? "optional" : "recommend",
         { capabilityPatch: { arb: true }, confidence: 0.84 },
       ),
     ],
@@ -258,8 +266,8 @@ export function generateBuildPlan(
 
   const tires = stage(
     "tires",
-    "Banden",
-    `${tire.name}; breedte volgt de aangedreven as en beschikbare PI.`,
+    "Tires",
+    `${tire.name}; width follows the driven axle and available PI.`,
     "recommend",
     [
       upgrade(tire.id, tire.name, tire.detail, "recommend", {
@@ -273,9 +281,9 @@ export function generateBuildPlan(
             upgrade(
               input.driveType === "RWD" ? "front-width" : "rear-width",
               input.driveType === "RWD"
-                ? "Voorbreedte daarna finetunen"
-                : "Achterbreedte daarna finetunen",
-              "Voeg de tweede as alleen toe als de rondetijd of balans werkelijk verbetert.",
+                ? "Fine-Tune Front Width Next"
+                : "Fine-Tune Rear Width Next",
+              "Add width to the second axle only when lap time or balance genuinely improves.",
               "optional" as const,
               { confidence: 0.66, sourceIds: ["optn", "in-game"] },
             ),
@@ -284,23 +292,31 @@ export function generateBuildPlan(
     ],
   );
 
+  const crossCountryProfile = profile?.preset === "cross_country_a_s1";
   const suspensionId = config.tuneMode === "Drift"
     ? "drift-suspension"
     : offroad
-      ? "rally-suspension"
+      ? crossCountryProfile
+        ? "offroad-suspension"
+        : "rally-suspension"
       : "race-suspension";
   const suspensionName = config.tuneMode === "Drift"
     ? "Drift suspension"
     : offroad
-      ? "Rally suspension"
+      ? crossCountryProfile
+        ? "Off-Road suspension"
+        : "Rally suspension"
       : "Race suspension";
   const chassis = stage(
     "chassis",
-    "Remmen & onderstel",
+    "Brakes & Chassis",
     offroad
-      ? "Veerweg en controle gaan vóór een lage rijhoogte."
-      : "Voeg pas toe nadat banden, balans en gewicht zijn gekozen.",
+      ? "Suspension travel and control come before a low ride height."
+      : "Add these after choosing tires, balance, and weight reduction.",
     offroad ||
+      profileRequires("race_springs") ||
+      profileRequires("offroad_suspension") ||
+      profileRequires("rally_suspension") ||
       config.focus === "control" ||
       ["S1", "S2", "X"].includes(config.targetClass)
       ? "recommend"
@@ -310,8 +326,8 @@ export function generateBuildPlan(
         suspensionId,
         suspensionName,
         offroad
-          ? "Meer veerweg en passende demping voor oneffen ondergrond."
-          : "Ontgrendelt camber, veren, rijhoogte en demping.",
+          ? "Adds suspension travel and suitable damping for uneven terrain."
+          : "Unlocks camber, springs, ride height, and damping.",
         "recommend",
         {
           capabilityPatch: {
@@ -324,17 +340,19 @@ export function generateBuildPlan(
       ),
       upgrade(
         "race-brakes",
-        "Race brakes",
-        "Nuttiger voor zware, snelle auto's en circuits met harde remzones.",
-        config.focus === "control" || ["S1", "S2", "X"].includes(config.targetClass)
+        "Race Brakes",
+        "Most useful for heavy, fast cars and tracks with hard braking zones.",
+        config.focus === "control" ||
+          profileRequires("race_brakes") ||
+          ["S1", "S2", "X"].includes(config.targetClass)
           ? "recommend"
           : "optional",
         { capabilityPatch: { brakes: true }, confidence: 0.72 },
       ),
       upgrade(
         "chassis-reinforcement",
-        "Chassis reinforcement",
-        "Alleen als extra stabiliteit de gewichtstoename waard is.",
+        "Chassis Reinforcement",
+        "Use only when the added stability is worth the extra weight.",
         "later",
         { confidence: 0.55, sourceIds: ["optn", "in-game"] },
       ),
@@ -347,28 +365,30 @@ export function generateBuildPlan(
     ["Drag", "Wangan"].includes(config.tuneMode);
   const power = stage(
     "power",
-    "Vermogen",
+    "Power",
     powerEarly
-      ? "Vul het resterende PI-budget gericht voor acceleratie of topsnelheid."
-      : "Voeg vermogen pas toe nadat de auto het kan benutten.",
+      ? "Spend the remaining PI budget specifically on acceleration or top speed."
+      : "Add power only after the car can use it.",
     powerEarly ? "recommend" : "later",
     [
       upgrade(
         "power-light",
-        "Lichte motorupgrades",
+        "Light Engine Upgrades",
         config.keepStockEngine
-          ? "Behoud het motorkarakter en voeg vermogen in kleine, meetbare stappen toe."
-          : "Vergelijk elke stap op vermogen, gewicht en PI; meer pk is niet automatisch sneller.",
+          ? "Keep the engine character and add power in small, measurable steps."
+          : "Compare each step on power, weight, and PI; more horsepower is not automatically faster.",
         powerEarly ? "recommend" : "later",
         { confidence: 0.68, sourceIds: ["quicktune-guide", "optn", "in-game"] },
       ),
       upgrade(
         "power-heavy",
-        "Aspiratie- of engineswap",
+        "Aspiration or Engine Swap",
         config.keepStockEngine
-          ? "Overgeslagen: je wilt de standaardmotor behouden."
-          : "Pas laat kiezen; controleer gewicht, balans, powerband en benodigde gearing opnieuw.",
-        config.keepStockEngine ? "avoid" : "optional",
+          ? "Skipped because the stock engine is being retained."
+          : "Choose late and re-check weight, balance, powerband, and required gearing.",
+        config.keepStockEngine || profileAvoids("engine swap", "huge turbo", "turbo lag")
+          ? "avoid"
+          : "optional",
         { confidence: 0.52, sourceIds: ["quicktune-guide", "in-game"] },
       ),
     ],
@@ -376,6 +396,7 @@ export function generateBuildPlan(
 
   const aeroUseful =
     !config.avoidAero &&
+    !profileAvoids("heavy aero", "circuit aero", "no aero") &&
     !offroad &&
     config.tuneMode !== "Drag" &&
     ["A", "S1", "S2", "X"].includes(config.targetClass);
@@ -383,36 +404,39 @@ export function generateBuildPlan(
     "aero",
     "Aero",
     aeroUseful
-      ? "Gebruik downforce alleen als snelle bochten de topsnelheidsstraf waard zijn."
-      : "Mechanische grip en een schone build hebben nu voorrang.",
+      ? "Use downforce only when fast-corner grip is worth the top-speed penalty."
+      : "Mechanical grip and a clean build take priority.",
     aeroUseful ? "optional" : "later",
     [
       upgrade(
         "front-aero",
-        "Verstelbare front aero",
-        "Helpt high-speed turn-in, maar kost topsnelheid en vaak PI.",
-        aeroUseful ? "optional" : "later",
+        "Adjustable Front Aero",
+        "Improves high-speed turn-in but costs top speed and often PI.",
+        aeroUseful ? "optional" : profileAvoids("aero") ? "avoid" : "later",
         { capabilityPatch: { aero: true }, confidence: 0.62 },
       ),
       upgrade(
         "rear-aero",
-        "Verstelbare rear aero",
-        "Geeft high-speed stabiliteit; voorkom een onnodig hoge stand.",
-        aeroUseful ? "optional" : "later",
+        "Adjustable Rear Aero",
+        "Adds high-speed stability; avoid an unnecessarily high setting.",
+        aeroUseful ? "optional" : profileAvoids("aero") ? "avoid" : "later",
         { capabilityPatch: { aero: true }, confidence: 0.62 },
       ),
     ],
   );
 
   const warnings = [
-    "Controleer per onderdeel de echte beschikbaarheid en PI-kosten in FH6.",
-    "Voer na montage het werkelijke gewicht, de gewichtsverdeling en PI opnieuw in.",
+    "Confirm actual part availability and PI cost in FH6.",
+    "After installation, enter the actual weight, weight distribution, and PI.",
   ];
   if (!config.keepStockDrivetrain) {
-    warnings.push("Een drivetrain swap verandert de balans sterk; valideer de build als een nieuwe auto.");
+    warnings.push("A drivetrain swap changes the balance significantly; validate it as a new build.");
   }
   if (config.targetPi < input.pi) {
-    warnings.push("Het gekozen doel-PI ligt onder de huidige auto; verwijder eerst upgrades in FH6.");
+    warnings.push("The target PI is below the current car; remove upgrades in FH6 first.");
+  }
+  if (profile?.risks.includes("needs_in_game_weight_for_exact_springs")) {
+    warnings.push("This car type needs confirmed in-game weight and spring ranges for exact spring values.");
   }
 
   return {
@@ -422,10 +446,17 @@ export function generateBuildPlan(
     currentPi: input.pi,
     piBudget: Math.max(0, config.targetPi - input.pi),
     confidence: Number(
-      Math.max(0.48, 0.78 - (config.keepStockEngine ? 0 : 0.06) - (config.keepStockDrivetrain ? 0 : 0.08)).toFixed(2),
+      Math.max(
+        0.48,
+        0.78 +
+          (profile ? 0.06 : 0) -
+          (config.keepStockEngine ? 0 : 0.06) -
+          (config.keepStockDrivetrain ? 0 : 0.08),
+      ).toFixed(2),
     ),
     warnings,
-    stages: [foundation, tires, stage("weight", "Gewicht", "Minder massa helpt bijna elk prestatiedomein.", "recommend", weightUpgrades(config.targetClass)), chassis, power, aero],
+    profile,
+    stages: [foundation, tires, stage("weight", "Weight", "Lower mass improves nearly every performance area.", "recommend", weightUpgrades(config.targetClass)), chassis, power, aero],
   };
 }
 

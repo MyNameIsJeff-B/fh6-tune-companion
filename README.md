@@ -17,9 +17,10 @@ Mobiel geoptimaliseerde, offline-first PWA voor persoonlijke FH6-tunes.
 
 ## Build Guide
 
-De ingebouwde Build Guide maakt een discipline- en aandrijvingsspecifiek
-upgradeplan, leidt verstelbare tuningvelden af uit de geselecteerde onderdelen en
-markeert onzekerheden. De bronkeuzes en beperkingen staan in
+De Engelstalige Build Guide koppelt de gekozen auto aan een lokaal profiel met
+archetype, waarschijnlijke rollen, upgradevolgorde en vermijd-lijst. Daarna maakt
+de app een discipline- en aandrijvingsspecifiek upgradeplan, leidt verstelbare
+tuningvelden af en markeert onzekerheden. De bronkeuzes en beperkingen staan in
 `docs/BUILD_GUIDE_RESEARCH.md`.
 
 Voor volgende ontwikkelsessies staan de bindende werkinstructies in `AGENTS.md`
@@ -44,7 +45,7 @@ npm.cmd run build -- --mode pages
 
 - Baseline: TuneLab `1.7.0`, MIT-gelicentieerd.
 - Zichtbaar advies: `fh6-companion-0.3.0`.
-- Build Guide: `build-guide-0.2.0`.
+- Build Guide: `build-guide-0.3.0`.
 - Catalogus: actuele TuneLab v7-data plus de lokale FH6-kennislaag van 10 juni 2026.
 - Tunes worden lokaal opgeslagen met engine- en catalogusversie.
 
