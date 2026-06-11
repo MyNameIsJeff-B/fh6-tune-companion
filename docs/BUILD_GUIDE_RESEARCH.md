@@ -2,8 +2,8 @@
 
 Laatst gecontroleerd: 11 juni 2026
 
-Foundation-audit verwerkt in appversie `0.5.0`, tune-engine
-`fh6-companion-0.4.0` en Build Guide `build-guide-0.4.0`.
+Foundation-audit en de veilige research-backlog verwerkt in appversie `0.6.0`,
+tune-engine `fh6-companion-0.5.0` en Build Guide `build-guide-0.5.0`.
 
 ## Productbesluit
 
@@ -161,6 +161,13 @@ expliciete waarschuwing.
 13. Houd front en rear toe standaard op `0,0°` in Horizon totdat een specifieke,
     in-game bevestigde diagnose een afwijking rechtvaardigt.
 14. Bereken Final Drive met `3%` marge onder de limiter.
+15. Modelleer Differential-capabilities per tier: Stock = geen sliders, Sport =
+    acceleration-only, Race/discipline-differential = volledige sliders.
+16. Houd Rally compound en Off-Road Tires in verschillende pressure-banden.
+17. Gebruik compound-aware road camber en toon Aero Balance `0,40-0,45` als
+    in-game verificatiedoel, zonder onbevestigde aero-sliderwaarden te verzinnen.
+18. Behandel widebody, drivetrain-, engine- en EV-swaps als expliciete
+    trade-offs in gewicht, drag, PI, balans en opnieuw afstellen.
 
 ## Niet overgenomen
 

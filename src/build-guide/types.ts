@@ -17,6 +17,7 @@ export type BuildPriority = "recommend" | "optional" | "later" | "avoid";
 
 export type BuildUpgradeId =
   | "differential"
+  | "sport-differential"
   | "sport-transmission"
   | "race-transmission"
   | "arb"
@@ -44,7 +45,8 @@ export type BuildUpgradeId =
   | "power-light"
   | "power-heavy"
   | "front-aero"
-  | "rear-aero";
+  | "rear-aero"
+  | "widebody";
 
 export interface BuildGuideConfig {
   tuneMode: TuneMode;

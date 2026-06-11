@@ -302,7 +302,141 @@ describe("tuning engine", () => {
     expect(
       advanced.sections.find((item) => item.id === "gearing")?.values.length,
     ).toBeGreaterThan(1);
-    expect(advanced.engineVersion).toBe("fh6-companion-0.4.0");
+    expect(advanced.engineVersion).toBe("fh6-companion-0.5.0");
+  });
+
+  it("keeps Rally pressure separate from the low-pressure Off-Road band", () => {
+    const rally = calculateImproved({
+      ...DEFAULT_INPUT,
+      tuneMode: "Rally",
+      surface: "Dirt",
+      tireCompound: "Rally",
+    });
+    const offroad = calculateImproved({
+      ...DEFAULT_INPUT,
+      tuneMode: "Rally",
+      surface: "Dirt",
+      tireCompound: "Off-Road",
+    });
+    const pressure = (result: ReturnType<typeof calculateImproved>) =>
+      Number(
+        result.sections
+          .find((section) => section.id === "tires")
+          ?.values.find((value) => value.key === "pressure-front")?.value,
+      );
+    expect(pressure(rally)).toBeGreaterThan(pressure(offroad));
+    expect(pressure(offroad)).toBe(1.25);
+    expect(
+      rally.corrections.some((correction) =>
+        correction.includes("Street-pressure band"),
+      ),
+    ).toBe(true);
+  });
+
+  it("uses compound-aware road camber", () => {
+    const sport = calculateImproved({
+      ...DEFAULT_INPUT,
+      tireCompound: "Sport",
+    });
+    const slick = calculateImproved({
+      ...DEFAULT_INPUT,
+      tireCompound: "Race Slick",
+    });
+    const frontCamber = (result: ReturnType<typeof calculateImproved>) =>
+      Number(
+        result.sections
+          .find((section) => section.id === "alignment")
+          ?.values.find((value) => value.key === "camber-front")?.value,
+      );
+    expect(frontCamber(sport)).toBe(-1.2);
+    expect(frontCamber(slick)).toBe(-1.8);
+  });
+
+  it("filters Sport Differential output to acceleration sliders", () => {
+    const result = calculateImproved({
+      ...DEFAULT_INPUT,
+      driveType: "AWD",
+      capabilities: {
+        ...DEFAULT_INPUT.capabilities,
+        differential: "accel",
+      },
+    });
+    const keys = result.sections
+      .find((section) => section.id === "differential")
+      ?.values.map((value) => value.key);
+    expect(keys).toEqual(["diff-front-accel", "diff-rear-accel"]);
+  });
+
+  it("keeps legacy boolean differential capabilities compatible", () => {
+    const available = calculateImproved({
+      ...DEFAULT_INPUT,
+      capabilities: {
+        ...DEFAULT_INPUT.capabilities,
+        differential: true,
+      },
+    });
+    const unavailable = calculateImproved({
+      ...DEFAULT_INPUT,
+      capabilities: {
+        ...DEFAULT_INPUT.capabilities,
+        differential: false,
+      },
+    });
+    expect(
+      available.sections.find((section) => section.id === "differential")
+        ?.available,
+    ).toBe(true);
+    expect(
+      unavailable.sections.find((section) => section.id === "differential")
+        ?.available,
+    ).toBe(false);
+  });
+
+  it("suppresses combustion gearing math for an EV with one gear", () => {
+    const result = calculateImproved({
+      ...DEFAULT_INPUT,
+      ev: true,
+      inputMode: "advanced",
+      gears: 1,
+      includeGearing: true,
+    });
+    expect(
+      result.sections.find((section) => section.id === "gearing")?.values,
+    ).toHaveLength(0);
+    expect(
+      result.warnings.some((warning) => warning.includes("EV/1-speed gearing")),
+    ).toBe(true);
+  });
+
+  it("adds Aero Balance and discipline-specific guidance", () => {
+    const wangan = calculateImproved({
+      ...DEFAULT_INPUT,
+      tuneMode: "Wangan",
+      hasAero: true,
+      capabilities: {
+        ...DEFAULT_INPUT.capabilities,
+        aero: true,
+      },
+    });
+    expect(
+      wangan.sections.find((section) => section.id === "aero")?.tip,
+    ).toContain("0,40-0,45");
+    expect(
+      wangan.warnings.some((warning) => warning.includes("Wangan gebruikt")),
+    ).toBe(true);
+
+    const touge = calculateImproved({
+      ...DEFAULT_INPUT,
+      tuneMode: "Touge",
+      driveType: "RWD",
+    });
+    const diff = touge.sections.find((section) => section.id === "differential");
+    expect(
+      diff?.values.find((value) => value.key === "diff-rear-accel")?.value,
+    ).toBe(60);
+    expect(
+      diff?.values.find((value) => value.key === "diff-rear-decel")?.value,
+    ).toBe(30);
   });
 
   it("creates an immutable diagnosis revision", () => {

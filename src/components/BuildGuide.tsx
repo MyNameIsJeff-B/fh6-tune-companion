@@ -103,11 +103,31 @@ export function BuildGuide({
   };
 
   const toggleUpgrade = (id: BuildUpgradeId) => {
-    setSelected((current) =>
-      current.includes(id)
-        ? current.filter((item) => item !== id)
-        : [...current, id],
+    const clicked = plan.stages
+      .flatMap((stage) => stage.upgrades)
+      .find((upgrade) => upgrade.id === id);
+    const compoundIds = new Set(
+      plan.stages
+        .flatMap((stage) => stage.upgrades)
+        .filter((upgrade) => upgrade.tireCompound)
+        .map((upgrade) => upgrade.id),
     );
+    const differentialIds = new Set<BuildUpgradeId>([
+      "sport-differential",
+      "differential",
+    ]);
+    setSelected((current) => {
+      if (current.includes(id)) {
+        return current.filter((item) => item !== id);
+      }
+      const withoutOtherCompounds = clicked?.tireCompound
+        ? current.filter((item) => !compoundIds.has(item))
+        : current;
+      const withoutOtherDifferentials = differentialIds.has(id)
+        ? withoutOtherCompounds.filter((item) => !differentialIds.has(item))
+        : withoutOtherCompounds;
+      return [...withoutOtherDifferentials, id];
+    });
   };
 
   const finish = (continueToGoal: boolean) => {

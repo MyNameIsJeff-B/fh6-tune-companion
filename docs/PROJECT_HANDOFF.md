@@ -4,7 +4,7 @@ Laatst bijgewerkt: 11 juni 2026
 
 ## Huidige status
 
-FH6 Tune Companion `0.5.0` is een werkende mobiele PWA met:
+FH6 Tune Companion `0.6.0` is een werkende mobiele PWA met:
 
 - auto zoeken of handmatig invoeren;
 - Engelstalige Build Guide met per-auto profiel, discipline, ondergrond,
@@ -35,6 +35,15 @@ FH6 Tune Companion `0.5.0` is een werkende mobiele PWA met:
 - Race Brakes vanaf A-class voor Road-builds;
 - klassesprongwaarschuwing bij minimaal twee klassen boven native;
 - expliciete Brake Balance-richting in gedeelde tunes.
+- Sport Differential met acceleration-only output en volledige
+  Race/Rally/Off-Road/Drift Differential-capabilities;
+- Rally- en Off-Road-compounds met verschillende pressure-banden;
+- compound-aware road camber en Aero Balance-doel `0,40-0,45`;
+- Touge-, Wangan-, Drag-, AWD- en Drift-specifieke waarschuwingen;
+- widebody-, drivetrain-, engine- en EV-swaptrade-offs;
+- EV/1-speed bescherming tegen ongeldige combustion gearing;
+- Rally compound als gelabeld Road-alternatief en extra front tire width-prioriteit
+  voor geschikte RWD A/S1-builds.
 
 Live:
 <https://mynameisjeff-b.github.io/fh6-tune-companion/>
@@ -46,10 +55,10 @@ Repository:
 
 | Onderdeel | Versie |
 | --- | --- |
-| App | `0.5.0` |
-| Eigen tune-engine | `fh6-companion-0.4.0` |
+| App | `0.6.0` |
+| Eigen tune-engine | `fh6-companion-0.5.0` |
 | TuneLab-baseline | `tunelab-1.7.0` |
-| Build Guide | `build-guide-0.4.0` |
+| Build Guide | `build-guide-0.5.0` |
 | Catalogus | `tunelab-v7+fh6-local-2026-06-10` |
 | Lokale opslag | `fh6-tune-companion:v1:tunes` |
 
@@ -139,7 +148,7 @@ Herstel vanaf cache `fh6-tune-v6`:
 
 ## Laatst uitgevoerde kwaliteitscontrole
 
-Op 11 juni 2026 voor Build Guide `0.4.0`:
+Op 11 juni 2026 voor Build Guide `0.5.0`:
 
 - ESLint schoon.
 - 56 Vitest-tests geslaagd in de gezonde tijdelijke runtime.
@@ -174,6 +183,9 @@ Op 11 juni 2026 voor Build Guide `0.4.0`:
 - De echte live URL is getest op 390 x 844: gewijzigde invoerflow, autodatabase,
   lokale fonts, assets, service worker en console zijn in orde.
 - Na een eerste online bezoek herlaadt de live app met autodatabase ook offline.
+- De uitgebreide research-backlog heeft 76 groene Vitest-tests, schone ESLint en
+  een geslaagde Pages-build in de gezonde tijdelijke runtime.
+- Service-workercache `fh6-tune-v9` forceert een atomaire update naar app `0.6.0`.
 
 ### Foundation Fix Sprint A
 
@@ -191,8 +203,8 @@ Wacht nog op Jeffs in-game of telemetry-validatie:
 
 - gewichtsgeleide damping (A1);
 - lagere, gewichtsgeleide spring targets (A2);
-- rally compound als Road-alternatief en front tire width-prioriteit (C1/C2);
-- Aero Balance-regel, differential-granulariteit en eigen Drift/Touge/Wangan/Drag-regels;
+- volledige numerieke Drift- en Drag-suspension/brake-branchcorrecties;
+- promotie van Mechanical/Aero Balance van verificatietip naar rekenregel;
 - PI-class caps, R-class-definitie en rear toe-in sign voor diagnose.
 
 ## Eerstvolgende productstap

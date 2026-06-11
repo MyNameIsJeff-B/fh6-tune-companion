@@ -1,5 +1,5 @@
 const CACHE_PREFIX = "fh6-tune-";
-const CACHE = `${CACHE_PREFIX}v8`;
+const CACHE = `${CACHE_PREFIX}v9`;
 const BASE = new URL(self.registration.scope).pathname;
 const fromBase = (path = "") => `${BASE}${path}`;
 const CORE_ASSETS = [

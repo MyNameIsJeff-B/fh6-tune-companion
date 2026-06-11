@@ -232,9 +232,9 @@ export function calculateBaseline(input: TuneInput): TuneResult {
     pressureFront -= metric ? 0.1 : 1.5;
     pressureRear -= metric ? 0.1 : 1.5;
   }
-  if (["Rally", "Off-Road"].includes(input.tireCompound)) {
-    pressureFront -= metric ? 0.15 : 2;
-    pressureRear -= metric ? 0.15 : 2;
+  if (input.tireCompound === "Off-Road") {
+    pressureFront -= metric ? 0.4 : 5.8;
+    pressureRear -= metric ? 0.4 : 5.8;
   }
   if (input.tireCompound === "Snow") {
     pressureFront -= metric ? 0.2 : 3;
@@ -288,7 +288,8 @@ export function calculateBaseline(input: TuneInput): TuneResult {
     input.inputMode === "advanced" &&
     input.includeGearing &&
     input.redlineRpm > 0 &&
-    input.topSpeed > 0
+    input.topSpeed > 0 &&
+    input.gears > 1
   ) {
     const tire = parseTire(input.tireRear);
     const topKmh = speedKmh;

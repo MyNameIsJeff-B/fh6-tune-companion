@@ -17,6 +17,9 @@ const round = (value: number, decimals = 2) => Number(value.toFixed(decimals));
 
 const capabilityAvailable = (input: TuneInput, id: Capability) => {
   if (id === "gearing") return input.capabilities.gearing !== "none";
+  if (id === "differential") {
+    return ![false, "none"].includes(input.capabilities.differential);
+  }
   return Boolean(input.capabilities[id]);
 };
 
@@ -67,6 +70,17 @@ export function calculateImproved(input: TuneInput): TuneResult {
   if (input.surface === "Road" && input.tuneMode !== "Drift") {
     change(result.sections, "toe-front", () => 0, 0.82);
     change(result.sections, "toe-rear", () => 0, 0.82);
+
+    const camberTargets = ["Street", "Sport"].includes(input.tireCompound)
+      ? { front: -1.2, rear: -0.7 }
+      : input.tireCompound === "Race Slick"
+        ? { front: -1.8, rear: -1 }
+        : { front: -1.5, rear: -0.8 };
+    change(result.sections, "camber-front", () => camberTargets.front, 0.78);
+    change(result.sections, "camber-rear", () => camberTargets.rear, 0.78);
+    corrections.push(
+      "Road camber volgt de ForzaFire compound-band: milder op Street/Sport en agressiever op Race Slick.",
+    );
   }
 
   corrections.push(
@@ -85,16 +99,25 @@ export function calculateImproved(input: TuneInput): TuneResult {
     corrections.push("FWD acceleratieslot iets geopend voor minder exit-onderstuur.");
   }
 
-  if (["Rally", "Off-Road"].includes(input.tireCompound) && input.surface !== "Road") {
-    change(result.sections, "pressure-front", (v) => v - (input.unitSystem === "metric" ? 0.25 : 3.5), 0.8);
-    change(result.sections, "pressure-rear", (v) => v - (input.unitSystem === "metric" ? 0.25 : 3.5), 0.8);
-    corrections.push("Offroad-bandenspanning verlaagd voor losse ondergrond.");
+  if (input.tireCompound === "Off-Road" && input.surface !== "Road") {
+    change(result.sections, "pressure-front", () => (input.unitSystem === "metric" ? 1.25 : 18), 0.8);
+    change(result.sections, "pressure-rear", () => (input.unitSystem === "metric" ? 1.25 : 18), 0.8);
+    corrections.push(
+      "Off-Road tire pressure op 1,25 bar / 18 psi gezet volgens de forza.guide compound-band.",
+    );
+  } else if (input.tireCompound === "Rally" && input.surface !== "Road") {
+    corrections.push(
+      "Rally compound blijft rond de Street-pressure band; het is geen lage-pressure Off-Road tire.",
+    );
   }
 
   if (input.tuneMode === "Drag") {
     change(result.sections, "pressure-front", () => (input.unitSystem === "metric" ? 3.45 : 50), 0.72);
     change(result.sections, "pressure-rear", (v) => Math.min(v, input.unitSystem === "metric" ? 1.45 : 21), 0.74);
     corrections.push("Dragbanden aangepast naar lagere achterdruk en lagere rolweerstand voor.");
+    warnings.push(
+      "Drag squat en suspension-keuze blijven build-afhankelijk; Rally suspension kan een startpunt zijn, maar valideer launch en wheeliegedrag in-game.",
+    );
   }
   if (input.season === "Summer" && input.surface === "Road") {
     corrections.push(
@@ -124,6 +147,42 @@ export function calculateImproved(input: TuneInput): TuneResult {
       0.74,
     );
     corrections.push("Stabiliteitsvoorkeur toegepast op de achter-ARB.");
+  }
+
+  const aeroSection = result.sections.find((section) => section.id === "aero");
+  if (aeroSection && input.hasAero) {
+    aeroSection.tip =
+      input.tuneMode === "Wangan" || input.feelResponse < 45
+        ? "Houd totale downforce laag voor topsnelheid en controleer in FH6 of Aero Balance rond 0,40-0,45 blijft."
+        : "Gebruik meer totale downforce voor circuitgrip en controleer in FH6 of Aero Balance rond 0,40-0,45 blijft.";
+  }
+
+  if (input.tuneMode === "Touge") {
+    warnings.push(
+      "Touge vraagt snelle tire warm-up, korte gearing en weinig drag; op koude routes kan Sport sneller op temperatuur komen dan een theoretisch grippier compound.",
+    );
+    if (input.driveType === "RWD") {
+      change(result.sections, "diff-rear-accel", () => 60, 0.7);
+      change(result.sections, "diff-rear-decel", () => 30, 0.68);
+      corrections.push(
+        "Touge RWD differential gebruikt 60% acceleration en 30% deceleration als downhill-stabiliteitsstartpunt.",
+      );
+    }
+  }
+
+  if (input.tuneMode === "Wangan") {
+    warnings.push(
+      "Wangan gebruikt langere gearing, lage downforce en gelijkmatige gear spacing in de peak-power band; valideer topsnelheid met slipstream-marge.",
+    );
+  }
+
+  if (
+    input.driveType === "AWD" &&
+    ["Race", "Touge", "Wangan", "General"].includes(input.tuneMode)
+  ) {
+    warnings.push(
+      "FH6 AWD heeft een inherente understeer-bias; gebruik rear-biased differential en ARB-balans om die te compenseren.",
+    );
   }
 
   if (!input.weight || input.weight <= 0) {
@@ -183,7 +242,8 @@ export function calculateImproved(input: TuneInput): TuneResult {
     input.inputMode === "advanced" &&
     input.includeGearing &&
     input.redlineRpm > 0 &&
-    input.topSpeed > 0
+    input.topSpeed > 0 &&
+    input.gears > 1
   ) {
     change(result.sections, "final-drive", (v) => Math.max(2.5, v * 0.97), 0.8);
     corrections.push(
@@ -192,6 +252,11 @@ export function calculateImproved(input: TuneInput): TuneResult {
   }
   if (input.inputMode === "quick") {
     warnings.push("Quick berekent geen gearing; kies Advanced en vul bevestigde RPM en topsnelheid in.");
+  }
+  if (input.ev || input.gears <= 1) {
+    warnings.push(
+      "EV/1-speed gearing gebruikt geen verbrandingsmotor-powerband; stel Final Drive in-game af op werkelijke topsnelheid en acceleration.",
+    );
   }
   if (input.buildGuide && !input.buildGuide.valuesConfirmed) {
     warnings.push(
@@ -204,6 +269,14 @@ export function calculateImproved(input: TuneInput): TuneResult {
     if (item.id === "gearing" && input.capabilities.gearing === "final") {
       item.values = item.values.filter((candidate) => candidate.key === "final-drive");
       item.summary = item.values.length ? `FD ${item.values[0].value}` : "Niet berekend";
+    }
+    if (
+      item.id === "differential" &&
+      input.capabilities.differential === "accel"
+    ) {
+      item.values = item.values.filter((candidate) =>
+        candidate.key.endsWith("-accel"),
+      );
     }
     return {
       ...item,

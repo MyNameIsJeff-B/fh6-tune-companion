@@ -48,7 +48,7 @@ export interface BuildCapabilities {
   damping: boolean;
   aero: boolean;
   brakes: boolean;
-  differential: boolean;
+  differential: boolean | "none" | "accel" | "full";
 }
 
 export interface SpringSliderRange {
@@ -82,6 +82,7 @@ export interface TuneInput {
   maxTorque: number;
   topSpeed: number;
   gears: number;
+  ev?: boolean;
   includeGearing: boolean;
   hasAero: boolean;
   aeroFront: number;

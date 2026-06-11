@@ -197,13 +197,128 @@ describe("build guide", () => {
       "sport-transmission",
       "race-suspension",
     ]);
-    expect(result.capabilities.differential).toBe(true);
+    expect(result.capabilities.differential).toBe("full");
     expect(result.capabilities.gearing).toBe("final");
     expect(result.capabilities.alignment).toBe(true);
     expect(result.capabilities.springs).toBe(true);
     expect(result.capabilities.damping).toBe(true);
     expect(result.capabilities.arb).toBe(false);
     expect(result.capabilities.aero).toBe(false);
+  });
+
+  it("uses Sport Differential acceleration-only tuning in lower classes", () => {
+    const input = { ...DEFAULT_INPUT, carClass: "C", pi: 600 };
+    const config = {
+      ...defaultBuildConfig(input),
+      targetClass: "C",
+      targetPi: 600,
+    };
+    const plan = generateBuildPlan(input, config);
+    const differential = plan.stages
+      .find((stage) => stage.id === "foundation")
+      ?.upgrades.find((upgrade) => upgrade.id === "sport-differential");
+    expect(differential?.priority).toBe("recommend");
+    expect(
+      plan.stages
+        .find((stage) => stage.id === "foundation")
+        ?.upgrades.find((upgrade) => upgrade.id === "differential")?.priority,
+    ).toBe("optional");
+    const applied = applyBuildPlan(input, plan, ["sport-differential"]);
+    expect(applied.capabilities.differential).toBe("accel");
+    const legacyRaceApplied = applyBuildPlan(input, plan, ["differential"]);
+    expect(legacyRaceApplied.capabilities.differential).toBe("full");
+  });
+
+  it("uses discipline-specific full differentials", () => {
+    const rally = generateBuildPlan(
+      { ...DEFAULT_INPUT, tuneMode: "Rally", surface: "Dirt" },
+      {
+        ...defaultBuildConfig(DEFAULT_INPUT),
+        tuneMode: "Rally",
+        surface: "Dirt",
+      },
+    );
+    const drift = generateBuildPlan(
+      { ...DEFAULT_INPUT, tuneMode: "Drift" },
+      {
+        ...defaultBuildConfig(DEFAULT_INPUT),
+        tuneMode: "Drift",
+      },
+    );
+    expect(
+      rally.stages
+        .find((stage) => stage.id === "foundation")
+        ?.upgrades.find((upgrade) => upgrade.id === "differential")?.name,
+    ).toBe("Rally Differential");
+    expect(
+      drift.stages
+        .find((stage) => stage.id === "foundation")
+        ?.upgrades.find((upgrade) => upgrade.id === "differential")?.name,
+    ).toBe("Drift Differential");
+  });
+
+  it("adds widebody and stronger conversion trade-offs", () => {
+    const plan = generateBuildPlan(DEFAULT_INPUT, {
+      ...defaultBuildConfig(DEFAULT_INPUT),
+      focus: "grip",
+      avoidAero: false,
+      keepStockEngine: false,
+    });
+    const upgrades = plan.stages.flatMap((stage) => stage.upgrades);
+    expect(upgrades.find((upgrade) => upgrade.id === "widebody")?.detail).toContain(
+      "weight, drag, and PI",
+    );
+    expect(upgrades.find((upgrade) => upgrade.id === "power-heavy")?.detail).toContain(
+      "pre-swap baseline",
+    );
+  });
+
+  it("adds front width priority and a labeled Rally road alternative", () => {
+    const input = {
+      ...DEFAULT_INPUT,
+      driveType: "RWD" as const,
+      weight: 1050,
+      maxTorque: 600,
+    };
+    const plan = generateBuildPlan(input, {
+      ...defaultBuildConfig(input),
+      tuneMode: "Race",
+      surface: "Road",
+      targetClass: "A",
+      targetPi: 800,
+    });
+    const tires = plan.stages.find((stage) => stage.id === "tires")?.upgrades;
+    expect(tires?.find((upgrade) => upgrade.id === "front-width")?.priority).toBe(
+      "recommend",
+    );
+    const rallyAlternative = tires?.find(
+      (upgrade) =>
+        upgrade.id === "rally-tires" && upgrade.tireCompound === "Rally",
+    );
+    expect(rallyAlternative?.priority).toBe("optional");
+    expect(rallyAlternative?.name).toContain("PI-Efficient Alternative");
+    expect(rallyAlternative?.detail).toContain("Retune tire pressure");
+  });
+
+  it("warns about drivetrain and Drift-specific constraints", () => {
+    const lowClassSwap = generateBuildPlan(
+      { ...DEFAULT_INPUT, driveType: "RWD", carClass: "C", pi: 600 },
+      {
+        ...defaultBuildConfig(DEFAULT_INPUT),
+        tuneMode: "Drift",
+        targetClass: "C",
+        targetPi: 600,
+        keepStockDrivetrain: false,
+      },
+    );
+    expect(
+      lowClassSwap.warnings.some((warning) => warning.includes("AWD swap in D/C")),
+    ).toBe(true);
+    expect(
+      lowClassSwap.warnings.some((warning) =>
+        warning.includes("Drift Zones require RWD"),
+      ),
+    ).toBe(true);
   });
 
   it("defaults to recommended upgrades only", () => {

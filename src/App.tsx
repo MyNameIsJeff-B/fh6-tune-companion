@@ -202,6 +202,7 @@ function App() {
             : Math.round(weightKg * 2.205)
           : current.weight,
       frontWeightPercent: car.frontWeight || current.frontWeightPercent,
+      ev: car.ev,
       hasAero: false,
       includeGearing: true,
       capabilities: { ...ALL_CAPABILITIES },
@@ -218,8 +219,9 @@ function App() {
       ...input,
       maxTorque: input.inputMode === "quick" ? (input.unitSystem === "metric" ? 500 : 369) : input.maxTorque,
       topSpeed: input.inputMode === "quick" ? (input.unitSystem === "metric" ? 240 : 149) : input.topSpeed,
-      gears: input.inputMode === "quick" ? 6 : input.gears,
+      gears: input.inputMode === "quick" ? (input.ev ? 1 : 6) : input.gears,
       includeGearing:
+        !input.ev &&
         input.inputMode === "advanced" &&
         input.includeGearing &&
         input.capabilities.gearing !== "none",
@@ -723,7 +725,7 @@ function App() {
                   <Field label="Versnellingen">
                     <input
                       type="number"
-                      min="4"
+                      min={input.ev ? "1" : "4"}
                       max="10"
                       value={input.gears}
                       onChange={(event) => patch("gears", Number(event.target.value))}

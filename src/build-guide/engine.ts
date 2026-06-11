@@ -15,7 +15,7 @@ import type {
 } from "./types";
 import { seasonProfile } from "../domain/seasons";
 
-export const BUILD_GUIDE_VERSION = "build-guide-0.4.0";
+export const BUILD_GUIDE_VERSION = "build-guide-0.5.0";
 
 // FH6 sources conflict on the post-launch PI caps, and R may be a type class
 // rather than a true 999-point band. Keep these caps until verified in-game.
@@ -259,6 +259,20 @@ export function generateBuildPlan(
   const roadRace =
     config.surface === "Road" &&
     !["Drag", "Drift"].includes(config.tuneMode);
+  const crossCountryProfile = profile?.preset === "cross_country_a_s1";
+  const fullDifferential =
+    !["D", "C"].includes(config.targetClass) ||
+    ["Drift", "Rally"].includes(config.tuneMode) ||
+    offroad;
+  const metricWeight =
+    input.unitSystem === "metric" ? input.weight : input.weight / 2.205;
+  const metricTorque =
+    input.unitSystem === "metric" ? input.maxTorque : input.maxTorque * 1.356;
+  const lightPowerfulRoadBuild =
+    roadRace &&
+    ["A", "S1"].includes(config.targetClass) &&
+    metricWeight > 0 &&
+    metricTorque / (metricWeight / 1000) >= 450;
   const transmission =
     ["Drag", "Drift", "Wangan"].includes(config.tuneMode) ||
     ["acceleration", "speed"].includes(config.focus) ||
@@ -266,17 +280,52 @@ export function generateBuildPlan(
       ? upgrade(
           "race-transmission",
           "Race transmission",
-          "Full gearing is useful for major power or top-speed changes.",
+          input.gears >= 8
+            ? "Factory transmissions with 8+ gears are usually best left stock unless spacing is demonstrably poor; Race costs roughly 2-8 PI more than Sport."
+            : "Use full gearing for major power changes, unusual stock spacing, Drag, or Wangan; Race typically costs roughly 2-8 PI more than Sport.",
           "recommend",
           { capabilityPatch: { gearing: "full" }, confidence: 0.76 },
         )
       : upgrade(
           "sport-transmission",
           "Sport transmission",
-          "Adjustable Final Drive without unnecessary complexity.",
+          "The B/A sweet spot: adjustable Final Drive without the usual 2-8 PI premium of Race. Keep 8+ well-spaced factory gears stock.",
           "recommend",
           { capabilityPatch: { gearing: "final" }, confidence: 0.76 },
         );
+  const raceDifferential = upgrade(
+    "differential",
+    config.tuneMode === "Drift"
+      ? "Drift Differential"
+      : offroad
+        ? crossCountryProfile
+          ? "Off-Road Differential"
+          : "Rally Differential"
+        : "Race Differential",
+    `${input.driveType}: unlocks acceleration and deceleration tuning${input.driveType === "AWD" ? " plus center balance" : ""}. Some FH6 cars charge a small PI cost, so verify it in-game.`,
+    fullDifferential ? "recommend" : "optional",
+    {
+      capabilityPatch: { differential: "full" },
+      confidence: 0.86,
+      sourceIds: ["forzafire-drivetrain", "in-game"],
+    },
+  );
+  const differentialUpgrades = fullDifferential
+    ? [raceDifferential]
+    : [
+        upgrade(
+          "sport-differential",
+          "Sport Differential",
+          `${input.driveType}: unlocks acceleration tuning only and preserves more PI in lower classes.`,
+          "recommend",
+          {
+            capabilityPatch: { differential: "accel" },
+            confidence: 0.8,
+            sourceIds: ["forzafire-drivetrain", "in-game"],
+          },
+        ),
+        raceDifferential,
+      ];
 
   const foundation = stage(
     "foundation",
@@ -284,13 +333,7 @@ export function generateBuildPlan(
     "Unlock the inexpensive, high-impact adjustments first.",
     "recommend",
     [
-      upgrade(
-        "differential",
-        "Race differential",
-        `${input.driveType}: directly adjust traction and corner exit.`,
-        "recommend",
-        { capabilityPatch: { differential: true }, confidence: 0.86 },
-      ),
+      ...differentialUpgrades,
       transmission,
       upgrade(
         "arb",
@@ -320,7 +363,22 @@ export function generateBuildPlan(
             : undefined,
       }),
       widthUpgrade(input.driveType),
-      ...(config.focus === "grip" && !offroad
+      ...(input.driveType === "RWD" &&
+      roadRace &&
+      ["A", "S1", "S2", "R", "X"].includes(config.targetClass)
+        ? [
+            upgrade(
+              "front-width",
+              "Increase Front Tire Width Next",
+              "FH6 gives front width a stronger braking and turn-in benefit than previous titles; add it after rear traction when the PI cost remains efficient.",
+              "recommend" as const,
+              {
+                confidence: 0.76,
+                sourceIds: ["gamingpromax-handling", "in-game"],
+              },
+            ),
+          ]
+        : config.focus === "grip" && !offroad
         ? [
             upgrade(
               input.driveType === "RWD" ? "front-width" : "rear-width",
@@ -333,10 +391,25 @@ export function generateBuildPlan(
             ),
           ]
         : []),
+      ...(lightPowerfulRoadBuild
+        ? [
+            upgrade(
+              "rally-tires",
+              "Rally Compound (PI-Efficient Alternative)",
+              "A legitimate A/S1 road option on light, powerful cars: grip can approach slicks for less PI. Retune tire pressure and compare lap time before keeping it.",
+              "optional" as const,
+              {
+                capabilityPatch: { tires: true },
+                tireCompound: "Rally",
+                confidence: 0.66,
+                sourceIds: ["forza-guide", "in-game"],
+              },
+            ),
+          ]
+        : []),
     ],
   );
 
-  const crossCountryProfile = profile?.preset === "cross_country_a_s1";
   const suspensionId = config.tuneMode === "Drift"
     ? "drift-suspension"
     : offroad
@@ -401,8 +474,10 @@ export function generateBuildPlan(
       upgrade(
         "chassis-reinforcement",
         "Chassis Reinforcement",
-        "Use only when the added stability is worth the extra weight.",
-        "later",
+        config.tuneMode === "Drag"
+          ? "Skip for Drag: it adds handling weight that does not improve a straight-line pass."
+          : "Use only when the added stability is worth the extra weight.",
+        config.tuneMode === "Drag" ? "avoid" : "later",
         { confidence: 0.55, sourceIds: ["optn", "in-game"] },
       ),
     ],
@@ -434,7 +509,9 @@ export function generateBuildPlan(
         "Aspiration or Engine Swap",
         config.keepStockEngine
           ? "Skipped because the stock engine is being retained."
-          : "Choose late and re-check weight, balance, powerband, and required gearing.",
+          : input.ev
+            ? "An EV motor/battery swap changes instant torque, mass, and balance. Compare battery weight first; do not trust a still-changing meta preset."
+            : "Choose late. Keep PI room for tires, brakes, and weight; retune gearing and differential, compare against the pre-swap baseline, and remove the swap if it ruins the class target.",
         config.keepStockEngine || profileAvoids("engine swap", "huge turbo", "turbo lag")
           ? "avoid"
           : "optional",
@@ -471,6 +548,16 @@ export function generateBuildPlan(
         aeroUseful ? "optional" : profileAvoids("aero") ? "avoid" : "later",
         { capabilityPatch: { aero: true }, confidence: 0.62 },
       ),
+      upgrade(
+        "widebody",
+        "Widebody Kit",
+        "Can unlock front aero and wider tires, but adds weight, drag, and PI. Skip it when the extra tire width is not needed.",
+        aeroUseful || config.focus === "grip" ? "optional" : "later",
+        {
+          confidence: 0.66,
+          sourceIds: ["ggwtb-conversions", "in-game"],
+        },
+      ),
     ],
   );
 
@@ -482,6 +569,27 @@ export function generateBuildPlan(
   warnings.push(`${season.id}: ${season.guidance}`);
   if (!config.keepStockDrivetrain) {
     warnings.push("A drivetrain swap changes the balance significantly; validate it as a new build.");
+    if (input.driveType === "AWD" && config.tuneMode !== "Drift") {
+      warnings.push(
+        "Factory AWD is usually worth keeping in FH6; an RWD swap is mainly useful for Drift or preserving B/A chassis feel.",
+      );
+    } else if (
+      input.driveType !== "AWD" &&
+      ["D", "C"].includes(config.targetClass)
+    ) {
+      warnings.push(
+        "Avoid an AWD swap in D/C: its PI cost usually consumes the budget needed for tires, weight, and brakes.",
+      );
+    } else if (input.driveType !== "AWD") {
+      warnings.push(
+        "An AWD swap can improve consistency in S1/S2, Dirt, or Cross Country, but adds inherent understeer that ARB and differential tuning must offset.",
+      );
+    }
+  }
+  if (config.tuneMode === "Drift") {
+    warnings.push(
+      "FH6 Drift Zones require RWD for scoring; disable Traction Control and Stability Control.",
+    );
   }
   if (config.targetPi < input.pi) {
     warnings.push("The target PI is below the current car; remove upgrades in FH6 first.");
@@ -602,7 +710,7 @@ export function applyBuildPlan(
     damping: false,
     aero: false,
     brakes: false,
-    differential: false,
+    differential: "none",
   };
 
   for (const item of selectedUpgrades) {
