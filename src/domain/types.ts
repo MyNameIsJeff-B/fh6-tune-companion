@@ -114,6 +114,18 @@ export interface TuneSection {
   unavailableReason?: string;
 }
 
+export type InputDevice = "Controller" | "Wheel" | "Keyboard";
+export type AssistPreset = "Off" | "ABS" | "ABS + TCS" | "Custom";
+
+export interface TestRunContext {
+  location: string;
+  cleanLaps: number;
+  inputDevice: InputDevice;
+  assists: AssistPreset;
+  notes?: string;
+  observedAt: string;
+}
+
 export interface TuneResult {
   id: string;
   createdAt: string;
@@ -127,6 +139,7 @@ export interface TuneResult {
   corrections: string[];
   parentRevisionId?: string;
   revisionReason?: string;
+  testRun?: TestRunContext;
 }
 
 export type DiagnosisId =

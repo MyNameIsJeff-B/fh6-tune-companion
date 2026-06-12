@@ -4,7 +4,13 @@ import {
   loadSpringSliderRange,
   saveSpringSliderRange,
 } from "./carOverrides";
-import { importTunes, loadSavedTunes } from "./tunes";
+import {
+  importTunes,
+  garageAsJson,
+  loadSavedTunes,
+  tuneAsText,
+  tuneHistoryFor,
+} from "./tunes";
 
 describe("local storage compatibility", () => {
   beforeEach(() => localStorage.clear());
@@ -42,5 +48,69 @@ describe("local storage compatibility", () => {
     expect(() => importTunes(JSON.stringify(legacyTune))).not.toThrow();
     expect(loadSavedTunes()).toHaveLength(1);
     expect(loadSavedTunes()[0].input.season).toBe("Summer");
+    expect(loadSavedTunes()[0].testRun).toBeUndefined();
+  });
+
+  it("filters and orders tune history by car and discipline", () => {
+    const base = calculateImproved(DEFAULT_INPUT);
+    const older = {
+      ...base,
+      id: "older",
+      createdAt: "2026-06-10T10:00:00.000Z",
+    };
+    const current = {
+      ...base,
+      id: "current",
+      parentRevisionId: "older",
+      createdAt: "2026-06-11T10:00:00.000Z",
+    };
+    const otherMode = {
+      ...base,
+      id: "other-mode",
+      createdAt: "2026-06-12T10:00:00.000Z",
+      input: { ...base.input, tuneMode: "Drift" as const },
+    };
+    const history = tuneHistoryFor([older, otherMode], current);
+    expect(history.map((item) => item.id)).toEqual(["current", "older"]);
+  });
+
+  it("includes recorded test context in shared tune text", () => {
+    const result = {
+      ...calculateImproved(DEFAULT_INPUT),
+      testRun: {
+        location: "Horizon Mexico Circuit",
+        cleanLaps: 3,
+        inputDevice: "Wheel" as const,
+        assists: "Off" as const,
+        notes: "Middenbocht stabieler.",
+        observedAt: "2026-06-12T10:00:00.000Z",
+      },
+    };
+    const text = tuneAsText(result);
+    expect(text).toContain("TESTRIT");
+    expect(text).toContain("Horizon Mexico Circuit · 3 schone ronden · Wheel");
+    expect(text).toContain("Middenbocht stabieler.");
+  });
+
+  it("round-trips a complete garage export through the existing importer", () => {
+    const first = {
+      ...calculateImproved(DEFAULT_INPUT),
+      id: "garage-1",
+    };
+    const second = {
+      ...calculateImproved({
+        ...DEFAULT_INPUT,
+        id: "second-input",
+        tuneMode: "Touge",
+      }),
+      id: "garage-2",
+    };
+
+    importTunes(garageAsJson([first, second]));
+
+    expect(loadSavedTunes().map((item) => item.id)).toEqual([
+      "garage-1",
+      "garage-2",
+    ]);
   });
 });

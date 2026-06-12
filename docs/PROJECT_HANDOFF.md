@@ -4,7 +4,7 @@ Laatst bijgewerkt: 11 juni 2026
 
 ## Huidige status
 
-FH6 Tune Companion `0.6.0` is een werkende mobiele PWA met:
+FH6 Tune Companion `0.7.0` is een werkende mobiele PWA met:
 
 - auto zoeken of handmatig invoeren;
 - Nederlandstalige Build Guide met per-auto profiel, discipline, ondergrond,
@@ -47,7 +47,13 @@ FH6 Tune Companion `0.6.0` is een werkende mobiele PWA met:
 - zichtbare aankoop- en onzekerheidswaarschuwingen vóór de upgradekeuze;
 - directe samenvatting van de tuningtoegang van geselecteerde onderdelen;
 - exclusieve keuze tussen Sport en volledige Differential-tier, ook in handmatige
-  invoer.
+  invoer;
+- verplichte testlocatie plus optionele testritcontext bij diagnose: schone ronden,
+  besturing, assists en notities;
+- teruglaadbare tunegeschiedenis per auto en discipline, inclusief de basisrevisie;
+- volledige garage-export als één herimporteerbaar JSON-bestand.
+- browsergestuurde PWA-installknop waar ondersteund, met concrete iOS- en
+  Android-instructies als fallback.
 
 Live:
 <https://mynameisjeff-b.github.io/fh6-tune-companion/>
@@ -59,7 +65,7 @@ Repository:
 
 | Onderdeel | Versie |
 | --- | --- |
-| App | `0.6.0` |
+| App | `0.7.0` |
 | Eigen tune-engine | `fh6-companion-0.5.0` |
 | TuneLab-baseline | `tunelab-1.7.0` |
 | Build Guide | `build-guide-0.5.0` |
@@ -196,7 +202,16 @@ Op 11 juni 2026 voor Build Guide `0.5.0`:
 - Er is voor deze laatste UI-ronde geen nieuwe visuele browser-QA uitgevoerd,
   omdat de ingebouwde Codex-browser nog steeds faalt met de bekende Windows
   `CreateProcessWithLogonW`-fout.
-- Service-workercache `fh6-tune-v9` forceert een atomaire update naar app `0.6.0`.
+- Service-workercache `fh6-tune-v10` forceert een atomaire update naar app `0.7.0`.
+- De diagnoseflow bewaart vanaf `0.7.0` de voorgaande revisie, koppelt testcontext
+  aan de nieuwe revisie en toont de volledige keten terug in de app.
+- De volledige garage kan vanaf `0.7.0` als één JSON-bestand worden geëxporteerd
+  en via de bestaande import worden hersteld.
+- 82 Vitest-tests zijn groen, inclusief React-interactietests van handmatige invoer
+  via diagnose naar een geschiedenis met twee revisies en van de mobiele
+  installatie-instructies.
+- De in-app Browser kon op 12 juni 2026 opnieuw niet starten door dezelfde Windows
+  `CreateProcessWithLogonW`-fout; er is geen externe browserfallback gebruikt.
 
 ### Foundation Fix Sprint A
 
@@ -250,10 +265,8 @@ Zet bewezen correcties daarna om in:
 
 ### P1 - Dagelijks gebruik
 
-- Voeg testritnotities en rondesfeedback per revisie toe.
-- Voeg een duidelijke tunegeschiedenis per auto toe.
-- Maak export/import van de volledige garage mogelijk.
-- Voeg een installatiewenk toe voor iOS en Android.
+De oorspronkelijke P1-items voor testritcontext, geschiedenis, garage-export en
+mobiele installatiehulp zijn in app `0.7.0` verwerkt.
 
 ### P2 - Betere builddata
 

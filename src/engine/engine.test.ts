@@ -441,11 +441,26 @@ describe("tuning engine", () => {
 
   it("creates an immutable diagnosis revision", () => {
     const original = calculateImproved(DEFAULT_INPUT);
-    const revised = applyDiagnosis(original, "power-oversteer");
+    const revised = applyDiagnosis(original, "power-oversteer", {
+      location: "  Horizon Mexico Circuit  ",
+      cleanLaps: 2.6,
+      inputDevice: "Controller",
+      assists: "ABS",
+      notes: "  Uitkomen bocht 7 blijft onrustig.  ",
+    });
     expect(revised.parentRevisionId).toBe(original.id);
     expect(revised.id).not.toBe(original.id);
     expect(original.revisionReason).toBeUndefined();
+    expect(original.testRun).toBeUndefined();
     expect(revised.revisionReason).toBe("Power-overstuur");
+    expect(revised.testRun).toMatchObject({
+      location: "Horizon Mexico Circuit",
+      cleanLaps: 3,
+      inputDevice: "Controller",
+      assists: "ABS",
+      notes: "Uitkomen bocht 7 blijft onrustig.",
+    });
+    expect(revised.testRun?.observedAt).toBeTruthy();
     const differential = revised.sections.find(
       (item) => item.id === "differential",
     );

@@ -24,6 +24,11 @@ tuningvelden af en toont aankoopwaarschuwingen en de tuningtoegang van de
 geselecteerde onderdelen. De bronkeuzes en beperkingen staan in
 `docs/BUILD_GUIDE_RESEARCH.md`.
 
+Na een testrit kan een diagnose als nieuwe revisie worden opgeslagen met
+testlocatie, schone ronden, besturing, assists en notities. De volledige
+geschiedenis per auto en discipline blijft teruglaadbaar en de garage kan als één
+JSON-bestand worden geëxporteerd.
+
 Voor volgende ontwikkelsessies staan de bindende werkinstructies in `AGENTS.md`
 en de actuele status en roadmap in `docs/PROJECT_HANDOFF.md`.
 
