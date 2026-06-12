@@ -1,6 +1,6 @@
 import type { BuildCapabilities, TuneInput, TuneMode } from "./types";
 
-export const ENGINE_VERSION = "fh6-companion-0.6.0";
+export const ENGINE_VERSION = "fh6-companion-0.7.0";
 export const BASELINE_VERSION = "tunelab-1.7.0";
 export const CATALOG_VERSION = "tunelab-v7+fh6-local-2026-06-10";
 
@@ -42,8 +42,8 @@ export const DEFAULT_INPUT: TuneInput = {
   tuneMode: "Race",
   season: "Summer",
   surface: "Road",
-  carClass: "A",
-  pi: 800,
+  carClass: "B",
+  pi: 548,
   weight: 1260,
   frontWeightPercent: 51,
   tireCompound: "Race Semi-Slick",

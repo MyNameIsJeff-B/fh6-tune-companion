@@ -30,6 +30,7 @@ import {
   TUNE_MODES,
 } from "./domain/defaults";
 import { SEASONS } from "./domain/seasons";
+import { classForPi, FH6_MAX_PI } from "./domain/pi";
 import packageJson from "../package.json";
 import type {
   Capability,
@@ -92,16 +93,6 @@ const buildFocusLabels = {
   speed: "Topsnelheid",
   control: "Controle",
 } as const;
-
-const classForPi = (pi: number) => {
-  if (pi <= 500) return "D";
-  if (pi <= 600) return "C";
-  if (pi <= 700) return "B";
-  if (pi <= 800) return "A";
-  if (pi <= 900) return "S1";
-  if (pi <= 998) return "S2";
-  return "R";
-};
 
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>;
@@ -527,7 +518,7 @@ function App() {
                 <input
                   type="number"
                   min="100"
-                  max="999"
+                  max={FH6_MAX_PI}
                   value={input.pi}
                   onChange={(event) => {
                     const pi = Number(event.target.value);

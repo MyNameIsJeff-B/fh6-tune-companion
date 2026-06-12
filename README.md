@@ -66,8 +66,8 @@ databases of gesloten formules.
 ## Model
 
 - Baseline: TuneLab `1.7.0`, MIT-gelicentieerd.
-- Zichtbaar advies: `fh6-companion-0.6.0`.
-- Build Guide: `build-guide-0.6.0`.
+- Zichtbaar advies: `fh6-companion-0.7.0`.
+- Build Guide: `build-guide-0.7.0`.
 - Catalogus: actuele TuneLab v7-data plus de lokale FH6-kennislaag van 10 juni 2026.
 - Tunes worden lokaal opgeslagen met engine- en catalogusversie.
 

@@ -4,7 +4,10 @@ Compiled: 11 June 2026 (Cowork). Bevat één potentieel fundamentele discrepanti
 
 ## ⚠ PI-klassegrenzen: bronnen spreken elkaar fundamenteel tegen
 
-ForzaFire's drivetrain-gids stelt expliciet: PI "now caps at A 700 and rolls into S1 at 701, after FH6's class rebalance". Bossdown meldde eerder hetzelfde ("elke klasse onder S2 is ~100 PI gezakt, de community ruziet over de exacte grens"). Daartegenover: gamingpromax, games.gg en egamersworld hanteren allemaal A 701–800 / S1 801–900 — de FH5-indeling. Dit is geen detail: onze CLASS_CAPS (A=800, S1=900) stuurt élk targetPi-budget in de Build Guide. Als ForzaFire gelijk heeft, zit elke cap behalve S2 er 100 naast. **Hoogste prioriteit op de verificatielijst — Jeff kan dit met één blik op een class-badge beantwoorden.** Tot die tijd: geen wijziging, wel een waarschuwingscomment bij CLASS_CAPS in Sprint A (uitbreiding van C6).
+ForzaFire's drivetrain-gids stelde expliciet dat A op 700 eindigt en S1 bij 701
+begint. Dit is op 12 juni 2026 bevestigd met de officiële FH6-carlist. De
+gecorrigeerde caps zijn `D400/C500/B600/A700/S1 800/S2 900/R998`; de eerdere
+FH5-indeling in de app was inderdaad 100 PI te hoog voor D tot en met S2.
 
 ## Nieuw kennisgebied: het FH6 EV-systeem (D6)
 

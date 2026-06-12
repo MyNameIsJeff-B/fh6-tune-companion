@@ -16,24 +16,14 @@ import type {
   BuildUpgradeId,
 } from "./types";
 import { seasonProfile } from "../domain/seasons";
+import {
+  BUILD_CLASS_OPTIONS,
+  CLASS_CAPS,
+  targetPiForClass,
+} from "../domain/pi";
 
-export const BUILD_GUIDE_VERSION = "build-guide-0.6.0";
-
-// FH6 sources conflict on the post-launch PI caps, and R may be a type class
-// rather than a true 999-point band. Keep these caps until verified in-game.
-export const CLASS_CAPS: Record<string, number> = {
-  D: 500,
-  C: 600,
-  B: 700,
-  A: 800,
-  S1: 900,
-  S2: 998,
-  R: 999,
-  // Accepted for old saved builds and imports; FH6 now labels the top class R.
-  X: 999,
-};
-
-export const BUILD_CLASS_OPTIONS = ["D", "C", "B", "A", "S1", "S2", "R"];
+export const BUILD_GUIDE_VERSION = "build-guide-0.7.0";
+export { BUILD_CLASS_OPTIONS, CLASS_CAPS };
 
 const source = ["forzatune-guide", "quicktune-guide", "optn", "in-game"];
 const CLASS_ORDER = ["D", "C", "B", "A", "S1", "S2", "R"];
@@ -364,7 +354,7 @@ export function defaultBuildConfig(input: TuneInput): BuildGuideConfig {
     surface: saved?.surface ?? input.surface,
     focus: saved?.focus ?? "balanced",
     targetClass,
-    targetPi: saved?.targetPi ?? CLASS_CAPS[targetClass] ?? 800,
+    targetPi: targetPiForClass(targetClass, saved?.targetPi),
     keepStockEngine: saved?.keepStockEngine ?? true,
     keepStockDrivetrain: saved?.keepStockDrivetrain ?? true,
     avoidAero: saved?.avoidAero ?? !input.hasAero,

@@ -303,7 +303,7 @@ describe("tuning engine", () => {
     expect(
       advanced.sections.find((item) => item.id === "gearing")?.values.length,
     ).toBeGreaterThan(1);
-    expect(advanced.engineVersion).toBe("fh6-companion-0.6.0");
+    expect(advanced.engineVersion).toBe("fh6-companion-0.7.0");
   });
 
   it("keeps Rally pressure separate from the low-pressure Off-Road band", () => {

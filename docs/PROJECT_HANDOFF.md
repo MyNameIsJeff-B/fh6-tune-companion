@@ -4,7 +4,7 @@ Laatst bijgewerkt: 12 juni 2026
 
 ## Huidige status
 
-FH6 Tune Companion `0.8.1` is een werkende mobiele PWA met:
+FH6 Tune Companion `0.8.2` is een werkende mobiele PWA met:
 
 - een reproduceerbare bronlaag onder `automation/data`;
 - een wekelijkse GitHub Actions-bronbewaker met `data-update`,
@@ -22,6 +22,8 @@ FH6 Tune Companion `0.8.1` is een werkende mobiele PWA met:
   vermijd-lijst;
 - discipline- en profielgestuurde actieve buildstappen;
 - actuele `R`-topklasse met migratie van oude opgeslagen `X`-builds;
+- gecorrigeerde FH6-caps `D400/C500/B600/A700/S1 800/S2 900/R998`;
+- centrale PI-naar-klasse afleiding en begrenzing van oude ongeldige builddoelen;
 - afzonderlijke Rally Tires voor Dirt en Off-Road Tires voor Cross Country;
 - seizoenskeuze voor Spring, Summer, Autumn en Winter, los van de route-ondergrond;
 - `+0,05 bar` Summer- en `-0,10 bar` Winter-correctie op tire pressure, met
@@ -78,10 +80,10 @@ Repository:
 
 | Onderdeel | Versie |
 | --- | --- |
-| App | `0.8.1` |
-| Eigen tune-engine | `fh6-companion-0.6.0` |
+| App | `0.8.2` |
+| Eigen tune-engine | `fh6-companion-0.7.0` |
 | TuneLab-baseline | `tunelab-1.7.0` |
-| Build Guide | `build-guide-0.6.0` |
+| Build Guide | `build-guide-0.7.0` |
 | Catalogus | `tunelab-v7+fh6-local-2026-06-10` |
 | Lokale opslag | `fh6-tune-companion:v1:tunes` |
 

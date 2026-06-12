@@ -40,7 +40,9 @@ Test status at audit time: 56/56 passing (engine 24, build-guide 26, profiles 4,
 
 **C5. FH6 dirt penalty note.** FH6 penalises Race Slicks (and lesser extent Sport/Semi-Slick) on dirt harder than FH5 — supports existing compound logic; add one line to the rally/off-road tire detail and the sources file.
 
-**C6. R-class definition is murky.** Sources conflict: "PI 998 cap shared with S2", "above 998", "car-type class for prototypes". Current CLASS_CAPS (S2 998, R 999) is harmless since it only caps PI budget, but add a code comment + in-game verification item. Note: overall PI range is 100–998 per most sources, not 999.
+**C6. Afgehandeld op 12 juni 2026.** De officiële FH6-carlist bevestigt via
+aangrenzende voorbeelden dat S2 eindigt op 900, R begint op 901 en R eindigt op
+998. De app gebruikt niet langer de voorlopige S2 998/R 999-grens.
 
 **C7. Wangan mode has no own engine branch.** Listed in TUNE_MODES but falls through to road defaults. TuneLab has Wangan freqMult (f 1.04 / r 0.97) and the mode implies gearing/aero emphasis. Low priority: either give Wangan a minimal branch (slightly stiffer front, top-speed-biased gearing note) or document that it intentionally equals Race for now.
 
@@ -48,7 +50,7 @@ Test status at audit time: 56/56 passing (engine 24, build-guide 26, profiles 4,
 
 ## Validated — explicitly checked, no change needed
 
-Road ARB ranges (conservative ForzaFire bands) · AWD center diff 70–78% rear (Apex 70–75; early community meta ~70/30 rear split agrees) · brake balance baseline values (50–56% front band matches all guides) · drag/drift/rally/rain branch values (match TuneLab line-for-line) · camber/caster defaults · diagnosis-engine direction logic (soften the problem end) · percent-of-range spring philosophy as such (forza.guide slider-position method; TuneLab's own FORZA_SCALE=9 TODO confirms absolute values are unreliable) · geometric gear progression · seasonal pressure direction · PI class caps D500/C600/B700/A800/S1 900/S2 998 (multi-source) · Build Guide stage ordering incl. discipline overrides · profile matching logic (normalisation incl. Forza/Touge Edition suffixes).
+Road ARB ranges (conservative ForzaFire bands) · AWD center diff 70–78% rear (Apex 70–75; early community meta ~70/30 rear split agrees) · brake balance baseline values (50–56% front band matches all guides) · drag/drift/rally/rain branch values (match TuneLab line-for-line) · camber/caster defaults · diagnosis-engine direction logic (soften the problem end) · percent-of-range spring philosophy as such (forza.guide slider-position method; TuneLab's own FORZA_SCALE=9 TODO confirms absolute values are unreliable) · geometric gear progression · seasonal pressure direction · officiële FH6 PI-caps D400/C500/B600/A700/S1 800/S2 900/R998 · Build Guide stage ordering incl. discipline overrides · profile matching logic (normalisation incl. Forza/Touge Edition suffixes).
 
 ## Sequencing
 

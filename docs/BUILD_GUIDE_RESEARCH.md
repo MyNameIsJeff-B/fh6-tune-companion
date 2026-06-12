@@ -2,8 +2,8 @@
 
 Laatst gecontroleerd: 12 juni 2026
 
-PR Stunt-laag en de veilige research-backlog verwerkt in appversie `0.8.0`,
-tune-engine `fh6-companion-0.6.0` en Build Guide `build-guide-0.6.0`.
+PI-klassecorrectie en PR Stunt-laag verwerkt in appversie `0.8.2`,
+tune-engine `fh6-companion-0.7.0` en Build Guide `build-guide-0.7.0`.
 
 ## Productbesluit
 
@@ -11,6 +11,12 @@ De Build Guide geeft een autospecifiek startprofiel plus een uitlegbaar
 upgradeplan op basis van discipline, ondergrond, doelklasse, aandrijving en
 voorkeur. De zichtbare Build Guide gebruikt Engelse FH6-termen om verwarring met
 de Engelstalige game-interface te voorkomen.
+
+FH6 gebruikt na de klasseherindeling de caps `D400`, `C500`, `B600`, `A700`,
+`S1 800`, `S2 900` en `R998`. Dit is rechtstreeks te controleren in de
+officiële carlist: onder andere A 700/S1 701, S1 800/S2 803 en S2 900/R 913
+komen als aangrenzende voorbeelden voor. De app gebruikt deze grenzen centraal
+voor doel-PI, handmatige klasseafleiding en migratie van oude ongeldige doelen.
 
 De profielset wordt reproduceerbaar gegenereerd uit
 `data/derived/car_build_recommendations.csv` en bevat 618 profielen. Zij combineert
@@ -61,8 +67,9 @@ expliciete waarschuwing.
 ### Officieel
 
 - [Forza Horizon 6 Cars List](https://forza.net/news/forza-horizon-6-cars-list)
-  wordt alleen gebruikt om auto-identiteit en modeljaar te bevestigen. De lijst
-  bevat geen volledige upgradecompatibiliteit.
+  wordt gebruikt om auto-identiteit, modeljaar, stock-PI en de officiële
+  klassegrenzen te bevestigen. De lijst bevat geen volledige
+  upgradecompatibiliteit.
 - [Forza Horizon 6 Data Out](https://support.forza.net/hc/en-us/articles/51744149102611-Forza-Horizon-6-Data-Out-Documentation)
   bevestigt dat FH6 onder andere actuele RPM, maximale motor-RPM, koppel, snelheid,
   versnelling en voertuigidentiteit via een lokale UDP-stream kan uitsturen. De

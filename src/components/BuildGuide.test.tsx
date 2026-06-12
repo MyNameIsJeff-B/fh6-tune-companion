@@ -26,7 +26,7 @@ describe("BuildGuide UI", () => {
     const input = {
       ...DEFAULT_INPUT,
       carClass: "C",
-      pi: 600,
+      pi: 500,
     };
     render(
       <BuildGuide input={input} onApply={vi.fn()} onManual={vi.fn()} />,

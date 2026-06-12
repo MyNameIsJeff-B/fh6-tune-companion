@@ -97,7 +97,7 @@ describe("build guide", () => {
       ...defaultBuildConfig(DEFAULT_INPUT),
       tuneMode: "Rain" as const,
       targetClass: "R",
-      targetPi: 999,
+      targetPi: 998,
     };
     const tire = generateBuildPlan(DEFAULT_INPUT, config).stages
       .find((stage) => stage.id === "tires")
@@ -134,7 +134,7 @@ describe("build guide", () => {
       tuneMode: "Race",
       surface: "Road",
       targetClass: "A",
-      targetPi: 800,
+      targetPi: 700,
     });
     const brakes = plan.stages
       .find((stage) => stage.id === "chassis")
@@ -145,11 +145,11 @@ describe("build guide", () => {
 
   it("warns when the target is at least two classes above native", () => {
     const plan = generateBuildPlan(
-      { ...DEFAULT_INPUT, carClass: "C", pi: 600 },
+      { ...DEFAULT_INPUT, carClass: "C", pi: 500 },
       {
         ...defaultBuildConfig(DEFAULT_INPUT),
         targetClass: "A",
-        targetPi: 800,
+        targetPi: 700,
       },
     );
     expect(
@@ -178,7 +178,7 @@ describe("build guide", () => {
     const input = {
       ...DEFAULT_INPUT,
       carClass: "R",
-      pi: 999,
+      pi: 998,
       buildGuide: {
         version: "build-guide-0.3.0",
         focus: "balanced" as const,
@@ -190,7 +190,7 @@ describe("build guide", () => {
       },
     };
     expect(defaultBuildConfig(input).targetClass).toBe("R");
-    expect(defaultBuildConfig(input).targetPi).toBe(999);
+    expect(defaultBuildConfig(input).targetPi).toBe(998);
   });
 
   it("applies selected upgrade capabilities without exposing missing parts", () => {
@@ -210,11 +210,11 @@ describe("build guide", () => {
   });
 
   it("uses Sport Differential acceleration-only tuning in lower classes", () => {
-    const input = { ...DEFAULT_INPUT, carClass: "C", pi: 600 };
+    const input = { ...DEFAULT_INPUT, carClass: "C", pi: 500 };
     const config = {
       ...defaultBuildConfig(input),
       targetClass: "C",
-      targetPi: 600,
+      targetPi: 500,
     };
     const plan = generateBuildPlan(input, config);
     const differential = plan.stages
@@ -288,7 +288,7 @@ describe("build guide", () => {
       tuneMode: "Race",
       surface: "Road",
       targetClass: "A",
-      targetPi: 800,
+      targetPi: 700,
     });
     const tires = plan.stages.find((stage) => stage.id === "tires")?.upgrades;
     expect(tires?.find((upgrade) => upgrade.id === "front-width")?.priority).toBe(
@@ -305,12 +305,12 @@ describe("build guide", () => {
 
   it("warns about drivetrain and Drift-specific constraints", () => {
     const lowClassSwap = generateBuildPlan(
-      { ...DEFAULT_INPUT, driveType: "RWD", carClass: "C", pi: 600 },
+      { ...DEFAULT_INPUT, driveType: "RWD", carClass: "C", pi: 500 },
       {
         ...defaultBuildConfig(DEFAULT_INPUT),
         tuneMode: "Drift",
         targetClass: "C",
-        targetPi: 600,
+        targetPi: 500,
         keepStockDrivetrain: false,
       },
     );
@@ -474,7 +474,7 @@ describe("build guide", () => {
   it("warns when the target PI is below the current build", () => {
     const plan = generateBuildPlan(
       { ...DEFAULT_INPUT, pi: 900 },
-      { ...defaultBuildConfig(DEFAULT_INPUT), targetClass: "A", targetPi: 800 },
+      { ...defaultBuildConfig(DEFAULT_INPUT), targetClass: "A", targetPi: 700 },
     );
     expect(
       plan.warnings.some((warning) => warning.includes("onder de huidige auto")),
