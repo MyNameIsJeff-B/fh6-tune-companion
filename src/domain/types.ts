@@ -30,13 +30,15 @@ export interface CarRecord {
   make: string;
   model: string;
   year: string;
-  drive: DriveType;
+  drive?: DriveType;
   cls: string;
   pi: number;
   weight: number;
   weightUnit?: "lbs" | "kg";
   frontWeight?: number;
   ev?: boolean;
+  dataStatus?: "technical" | "identity-only";
+  provenance?: string[];
 }
 
 export interface BuildCapabilities {

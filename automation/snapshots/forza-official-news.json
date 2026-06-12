@@ -1,0 +1,53 @@
+{
+  "sourceId": "forza-official-news",
+  "extractorVersion": 1,
+  "checkedAt": "2026-06-12T12:22:38.531Z",
+  "hash": "e93f21309663114b04e4b61fc8966a7624d8a712f61146c9d4c6ab2d53d6e9c8",
+  "content": [
+    {
+      "year": "1990",
+      "make": "Honda",
+      "model": "#19 101 Motorsport CRX WTAC"
+    },
+    {
+      "year": "1990",
+      "make": "Mitsubishi",
+      "model": "#269 Attacking the Clock Racing Minicab Time Attack"
+    },
+    {
+      "year": "1992",
+      "make": "Honda",
+      "model": "#21 Hardrace/JDMYard Civic WTAC"
+    },
+    {
+      "year": "1993",
+      "make": "Nissan",
+      "model": "#32 Skyline WTAC 'Xtreme GTR'"
+    },
+    {
+      "year": "1995",
+      "make": "Toyota",
+      "model": "J&J Motorsport Supra WTAC"
+    },
+    {
+      "year": "2000",
+      "make": "Nissan",
+      "model": "#36 Dream Project S15 Silvia WTAC"
+    },
+    {
+      "year": "2001",
+      "make": "Honda",
+      "model": "#33 Integra WTAC"
+    },
+    {
+      "year": "2004",
+      "make": "Honda",
+      "model": "#52 Evasive Motorsports S2000 WTAC"
+    },
+    {
+      "year": "2010",
+      "make": "Nissan",
+      "model": "370Z"
+    }
+  ]
+}

@@ -1,0 +1,41 @@
+{
+  "schemaVersion": 1,
+  "checkedAt": "2026-06-12T12:22:38.531Z",
+  "dataUpdates": [],
+  "reviewRequired": [],
+  "signals": [],
+  "unreachable": [
+    {
+      "sourceId": "forza-release-notes",
+      "expected": true,
+      "error": "HTTP 403"
+    },
+    {
+      "sourceId": "forza-dataout-doc",
+      "expected": true,
+      "error": "HTTP 403"
+    },
+    {
+      "sourceId": "fatty-changelog",
+      "expected": true,
+      "error": "HTTP 403"
+    },
+    {
+      "sourceId": "reddit-forzahorizon",
+      "expected": true,
+      "error": "HTTP 429"
+    },
+    {
+      "sourceId": "sepi-youtube",
+      "expected": true,
+      "error": "HTTP 404"
+    },
+    {
+      "sourceId": "hokihoshi-youtube",
+      "expected": true,
+      "error": "YouTube channelId niet gevonden"
+    }
+  ],
+  "physicsResearchRequired": false,
+  "snapshotChanges": 7
+}

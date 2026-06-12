@@ -1,0 +1,104 @@
+name: Bewaak FH6-bronnen
+
+on:
+  schedule:
+    - cron: "17 6 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+
+concurrency:
+  group: weekly-source-watch
+  cancel-in-progress: false
+
+jobs:
+  watch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Hergebruik snapshots van de open automation-branch
+        shell: bash
+        run: |
+          if git ls-remote --exit-code --heads origin automation/weekly-source-watch >/dev/null 2>&1; then
+            git fetch origin automation/weekly-source-watch
+            git checkout origin/automation/weekly-source-watch -- automation/snapshots 2>/dev/null || true
+            git checkout origin/automation/weekly-source-watch -- automation/report.json 2>/dev/null || true
+          fi
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+      - run: npm run automation:validate
+      - run: npm run automation:test
+      - run: npm run automation:watch
+      - run: npm run data:generate
+      - run: npm run data:validate
+      - run: npm run data:check-build-profiles
+      - run: npm run lint
+      - run: npm test
+      - run: npm run build -- --mode pages
+
+      - name: Bepaal of een onderhoudsissue nodig is
+        id: report
+        shell: bash
+        run: |
+          node -e "const r=require('./automation/report.json'); const issue=r.reviewRequired.length+r.signals.length+r.unreachable.length>0; const pr=r.dataUpdates.length+r.snapshotChanges>0; require('fs').appendFileSync(process.env.GITHUB_OUTPUT, 'issue='+issue+'\npr='+pr+'\n');"
+
+      - name: Maak of actualiseer één onderhoudsissue
+        if: steps.report.outputs.issue == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          issue_number="$(gh issue list --state open --label automation --search 'Wekelijkse FH6-onderhoudscontrole in:title' --json number --jq '.[0].number // empty')"
+          if [ -n "$issue_number" ]; then
+            gh issue edit "$issue_number" --body-file automation/issue-body.md
+          else
+            gh label create automation --color 1D76DB --description "Automatisch brononderhoud" --force
+            gh issue create --title "Wekelijkse FH6-onderhoudscontrole" --label automation --body-file automation/issue-body.md
+          fi
+
+      - name: Zorg dat automationlabels bestaan
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          gh label create automation --color 1D76DB --description "Automatisch brononderhoud" --force
+          gh label create data-update --color 0E8A16 --description "Veilige data-update" --force
+          gh label create needs-review --color FBCA04 --description "Inhoudelijke controle nodig" --force
+
+      - name: Voorkom PR-churn zonder bronwijziging
+        if: steps.report.outputs.pr != 'true'
+        shell: bash
+        run: git checkout -- automation/report.json
+
+      - name: Maak of actualiseer de veilige data-PR
+        if: steps.report.outputs.pr == 'true'
+        uses: peter-evans/create-pull-request@v7
+        with:
+          token: ${{ github.token }}
+          branch: automation/weekly-source-watch
+          delete-branch: false
+          commit-message: "[automation] update FH6 source snapshots and data"
+          title: "[automation] Wekelijkse FH6-bron- en data-update"
+          body: |
+            Automatisch voorstel van de FH6-bronbewaker.
+
+            - veilige data en genormaliseerde snapshots;
+            - geen automatische wijzigingen aan tune-engine of Build Guide-regels;
+            - lint, tests, datasetcontrole en Pages-build zijn uitgevoerd.
+
+            Controleer `automation/report.json` en merge alleen na inhoudelijke beoordeling.
+          labels: |
+            automation
+            data-update
+            needs-review

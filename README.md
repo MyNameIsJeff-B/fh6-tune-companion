@@ -45,10 +45,23 @@ npm.cmd run dev
 ## Controle
 
 ```powershell
+npm.cmd run automation:validate
+npm.cmd run automation:test
+npm.cmd run data:generate
 npm.cmd run lint
 npm.cmd test
 npm.cmd run build -- --mode pages
 ```
+
+## Automatisch brononderhoud
+
+De publieke datasets worden reproduceerbaar gegenereerd uit `automation/data`.
+Een wekelijkse GitHub Actions-workflow bewaakt bekende officiële, open-source en
+communitybronnen. Veilige datawijzigingen komen als pull request; tuningclaims
+worden alleen als onderhoudsissue gemeld.
+
+De automatisering merged niets zelfstandig en importeert geen commerciële
+databases of gesloten formules.
 
 ## Model
 

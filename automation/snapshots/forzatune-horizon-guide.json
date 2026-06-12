@@ -1,0 +1,86 @@
+{
+  "sourceId": "forzatune-horizon-guide",
+  "extractorVersion": 1,
+  "checkedAt": "2026-06-12T12:22:38.531Z",
+  "hash": "a389f4dffb2b33440769629829129cf69c92a2d756776160d202ff8ae469817b",
+  "content": {
+    "digest": "268a30495c769702fa7d68de9d1f418602a1bef72f5109aa9aebe55299a51608",
+    "pages": [
+      {
+        "digest": "519c260dc34b8903e31f440e5da149da445894961a11cc4b64d85043613294e8",
+        "headings": [
+          "The Fully Updated Forza Tuning Guide",
+          "Introduction",
+          "Table of Contents",
+          "Tires: How to Choose the Best Pressure and Compound",
+          "Picking the Right Compounds",
+          "How to Find the Best Tire Pressure for Forza Horizon 6 and Earlier",
+          "How to Find the Best Tire Pressure in Forza Motorsport (2023)",
+          "Summary of Tire Tuning",
+          "Camber: Why and How to Make Adjustments",
+          "Why Tune Camber?",
+          "How to Tune Camber",
+          "Additional Notes on Camber Tuning in Forza",
+          "Camber Tuning Summary",
+          "Toe and Caster: Why You Can Usually Ignore These",
+          "What is Toe?",
+          "Effects of Toe on Front Tires",
+          "Effects of Toe on Rear Tires",
+          "Avoid Toe If Possible",
+          "How to Set Toe on Your Tune",
+          "Toe Summary",
+          "What is Caster?",
+          "Why Not Run Max Caster?",
+          "How to Test and Tune Caster",
+          "Caster Summary",
+          "Springs: What They Really Do and How to Find the Right Balance",
+          "Understanding Spring Rates",
+          "Are Softer Springs Always Better?",
+          "What’s the Problem with Stiffer Springs?",
+          "Tips for Tuning Springs",
+          "Understanding Oversteer and Understeer",
+          "How to Tune Spring Rates Without Doing the Math",
+          "Summary",
+          "One More Thing About Springs",
+          "Anti-Roll Bars: An Easy Way to Tune Mid-Corner Handling",
+          "What Do Anti-Roll Bars Do?",
+          "How Anti-Roll Bars Work",
+          "How to Tune Anti-Roll Bars in Forza Horizon or Motorsport",
+          "Tips for Tuning Anti-Roll Bars",
+          "Dampers: Keep Your Car Fast and Predictable",
+          "Dampers Explained",
+          "Bump vs. Rebound",
+          "Tips for Damper Tuning",
+          "How to Tune Dampers in Forza",
+          "Suspension Geometry: A New Option in Forza Motorsport (2023)",
+          "How Roll Center Height Offset Works",
+          "When Adjusting Roll Center Height is Helpful",
+          "How to Tune Roll Center Height",
+          "Summary of Roll Center Height Adjustment",
+          "How Anti-Dive and Anti-Squat Geometry Works",
+          "When Adjusting Anti-Dive and Anti-Squat is Beneficial"
+        ],
+        "updateLines": [
+          "Note: Download the free or pro version of ForzaTune to get tire pressure recommendations, and reduce your trial and error time on tire pressure settings.",
+          "Tuning Tip: Later versions of Forza Horizon seem to be more sensitive to caster than previous games. Values above 6.0 degrees may make the car a bit too snappy during turn in. You can also change your steering assist to simulation to help with this.",
+          "Forza Horizon and Motorsport give us the ability to tune a simplified version of dampers using rebound and bump adjustments. Here you’ll learn what those terms mean and what effects damper tuning has on car handling.",
+          "For every percent of front weight reduced, subtract 0.2 from front rebound and damping and add 0.2 to rear values. Do the opposite if upgrades increase the front weight percentage (common with conversions).",
+          "You can download the free version of ForzaTune here , and learn about the ForzaTune Pro version here ."
+        ]
+      },
+      {
+        "digest": "38ac41a2737cf25b8a93f685ad9d63eaa4760787d8cf5312d5fa404f29d69991",
+        "headings": [
+          "Tuning a Car That Doesn’t Have a Power and Torque Graph?",
+          "Anthony Curtis",
+          "2 thoughts on &ldquo;Tuning a Car That Doesn’t Have a Power and Torque Graph?&rdquo;",
+          "Helpful Links",
+          "ForzaTune Pro",
+          "ForzaTune Free",
+          "Become a Better Forza Tuner"
+        ],
+        "updateLines": []
+      }
+    ]
+  }
+}

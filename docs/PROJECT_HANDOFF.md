@@ -4,8 +4,17 @@ Laatst bijgewerkt: 12 juni 2026
 
 ## Huidige status
 
-FH6 Tune Companion `0.8.0` is een werkende mobiele PWA met:
+FH6 Tune Companion `0.8.1` is een werkende mobiele PWA met:
 
+- een reproduceerbare bronlaag onder `automation/data`;
+- een wekelijkse GitHub Actions-bronbewaker met `data-update`,
+  `review-required` en `signal`;
+- veilige automatische voorstellen via één langlevende pull request, zonder
+  auto-merge;
+- één onderhoudsissue voor patches, bronwijzigingen, communitysignalen en
+  onbereikbare bronnen;
+- een afzonderlijke wekelijkse Codex-researchautomatisering voor open-ended
+  onderzoek, zonder toestemming om appcode of rekenwaarden te wijzigen;
 - auto zoeken of handmatig invoeren;
 - Nederlandstalige Build Guide met per-auto profiel, discipline, ondergrond,
   aandrijving, klasse en focus;
@@ -69,7 +78,7 @@ Repository:
 
 | Onderdeel | Versie |
 | --- | --- |
-| App | `0.8.0` |
+| App | `0.8.1` |
 | Eigen tune-engine | `fh6-companion-0.6.0` |
 | TuneLab-baseline | `tunelab-1.7.0` |
 | Build Guide | `build-guide-0.6.0` |
@@ -97,19 +106,37 @@ Guide staan daar los van. Zie `licenses/TUNELAB-MIT.txt` en
 
 ## Datastroom
 
-1. `src/data/cars.ts` laadt `public/data/cars.json`.
-2. `src/build-guide/profiles.ts` koppelt de auto conservatief aan
+1. `automation/generate-data.mjs` genereert de publieke datasets uit de
+   versieerbare invoer onder `automation/data`.
+2. `src/data/cars.ts` laadt `public/data/cars.json`.
+3. `src/build-guide/profiles.ts` koppelt de auto conservatief aan
    `public/data/build-profiles.json`.
-3. De gebruiker kiest een normale build of PR Stunt, daarna discipline/subtype,
+4. De gebruiker kiest een normale build of PR Stunt, daarna discipline/subtype,
    klasse, focus en buildbeperkingen.
-4. `src/build-guide/engine.ts` combineert profiel en keuzes tot een upgradeplan en
+5. `src/build-guide/engine.ts` combineert profiel en keuzes tot een upgradeplan en
    leidt capabilities af.
-5. `src/engine/baseline.ts` maakt het TuneLab-resultaat.
-6. `src/engine/improved.ts` past expliciete eigen correcties toe.
-7. `src/engine/summaries.ts` ververst alle zichtbare samenvattingen.
-8. `src/engine/diagnosis.ts` maakt op rijfeedback een nieuwe revisie.
-9. `src/storage/tunes.ts` bewaart maximaal 50 tunes in `localStorage`.
-10. `src/storage/carOverrides.ts` bewaart bevestigde veer-slidergrenzen per auto.
+6. `src/engine/baseline.ts` maakt het TuneLab-resultaat.
+7. `src/engine/improved.ts` past expliciete eigen correcties toe.
+8. `src/engine/summaries.ts` ververst alle zichtbare samenvattingen.
+9. `src/engine/diagnosis.ts` maakt op rijfeedback een nieuwe revisie.
+10. `src/storage/tunes.ts` bewaart maximaal 50 tunes in `localStorage`.
+11. `src/storage/carOverrides.ts` bewaart bevestigde veer-slidergrenzen per auto.
+
+## Automatisch onderhoud
+
+- `.github/workflows/weekly-source-watch.yml` draait maandag om 06:17 UTC en kan
+  handmatig worden gestart.
+- `automation/sources.json` is de expliciete watchlist. De watcher ontdekt zelf
+  geen nieuwe bronnen.
+- Officiële auto-identiteit en MIT-gelicentieerde TuneLab-data mogen alleen via
+  een geteste PR veranderen.
+- Tuninggidsen, release notes en formuleclaims worden uitsluitend gerapporteerd.
+- Bij physics-relevante release notes vraagt het onderhoudsissue hard om een
+  extra handmatige Codex-researchrun.
+- Support-bronnen krijgen één retry; botblokkade wordt `unreachable` en breekt de
+  rest van de run niet.
+- De Codex-researchrun draait aanvankelijk wekelijks. Na drie opeenvolgende
+  magere runs moet hij voorstellen het ritme naar maandelijks te verlagen.
 
 ## Bewust bekende beperkingen
 
@@ -141,6 +168,10 @@ Guide staan daar los van. Zie `licenses/TUNELAB-MIT.txt` en
   huidige overdrachtsmethode.
 - De repository is openbaar omdat het gebruikte GitHub-account anders geen Pages
   ondersteunt. Er staan geen persoonlijke tunes of geheimen in de repository.
+- De bronbewaker is geen zoekmachine. Volledig nieuwe bronnen blijven afhankelijk
+  van de afzonderlijke researchautomatisering.
+- Een identity-only auto verschijnt zonder verzonnen PI, gewicht of aandrijving;
+  de gebruiker moet die waarden in-game bevestigen.
 
 ## PWA-incident 11 juni 2026
 

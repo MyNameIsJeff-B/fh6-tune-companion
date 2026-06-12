@@ -2,14 +2,18 @@ import type { CarRecord } from "../domain/types";
 
 interface RawCarsFile {
   version: number;
+  generated?: string;
+  extractorVersion?: number;
   cars: Array<Record<string, unknown>>;
 }
 
 let cache: CarRecord[] | null = null;
 
 const normaliseDrive = (value: unknown): CarRecord["drive"] => {
-  const drive = String(value ?? "RWD").toUpperCase();
-  return drive === "FWD" || drive === "AWD" ? drive : "RWD";
+  const drive = String(value ?? "").toUpperCase();
+  return drive === "FWD" || drive === "RWD" || drive === "AWD"
+    ? drive
+    : undefined;
 };
 
 export async function loadCars(): Promise<CarRecord[]> {
@@ -22,12 +26,17 @@ export async function loadCars(): Promise<CarRecord[]> {
     model: String(car.model ?? ""),
     year: String(car.year ?? ""),
     drive: normaliseDrive(car.drive ?? car.drivetrain),
-    cls: String(car.cls ?? car.class ?? "A"),
+    cls: String(car.cls ?? car.class ?? ""),
     pi: Number(car.pi ?? 0),
     weight: Number(car.weight ?? 0),
     weightUnit: "kg",
     frontWeight: Number(car.frontWeight ?? car.weightDist ?? 0) || undefined,
     ev: Boolean(car.ev),
+    dataStatus:
+      car.dataStatus === "identity-only" ? "identity-only" : "technical",
+    provenance: Array.isArray(car.provenance)
+      ? car.provenance.map(String)
+      : undefined,
   }));
   return cache;
 }

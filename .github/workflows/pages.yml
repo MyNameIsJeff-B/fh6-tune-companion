@@ -24,6 +24,10 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
+      - run: npm run data:generate
+      - run: npm run data:validate
+      - run: npm run data:check-build-profiles
+      - run: npm run lint
       - run: npm test
       - run: npm run build -- --mode pages
       - uses: actions/configure-pages@v5

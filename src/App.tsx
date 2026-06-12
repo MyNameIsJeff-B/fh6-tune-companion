@@ -225,7 +225,7 @@ function App() {
       make: car.make,
       model: car.model,
       year: car.year,
-      driveType: car.drive,
+      driveType: car.drive ?? current.driveType,
       carClass: car.cls || current.carClass,
       pi: car.pi || current.pi,
       weight:
@@ -412,8 +412,13 @@ function App() {
                   </span>
                   <span className="car-row__meta">
                     <em>{car.year}</em>
-                    <b>{car.cls}</b>
-                    <small>{car.drive}</small>
+                    <b>{car.cls || "?"}</b>
+                    <small>
+                      {car.drive ??
+                        (car.dataStatus === "identity-only"
+                          ? "Check in-game"
+                          : "?")}
+                    </small>
                   </span>
                 </button>
               ))}

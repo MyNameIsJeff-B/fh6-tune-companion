@@ -1,0 +1,141 @@
+{
+  "sourceId": "forzafire-guides",
+  "extractorVersion": 1,
+  "checkedAt": "2026-06-12T12:22:38.531Z",
+  "hash": "1b5480bc3857106d338408cda0657f8ec58f1aeaa83571d031ddbabe14d4536e",
+  "content": {
+    "digest": "2a884b65becedb0d7e1d90e7bd539bd2ffb0f76ab44716d46c66cf6675362c8b",
+    "pages": [
+      {
+        "digest": "db6f0562e13ceb8c9deb1b3a6a454a05d99b0fcac09beefa424bbfbeccec9cd8",
+        "headings": [
+          "Forza Horizon 6 Platform & Handling Tuning Guide",
+          "Springs and Dampers",
+          "Anti-Roll Bars",
+          "Brakes",
+          "Weight Reduction",
+          "Chassis Reinforcement / Roll Cage",
+          "Tuning Alignment (Race or Rally Springs required)",
+          "Tuning Springs and Ride Height (Race or Rally Springs required)",
+          "Tuning Damping (Race or Rally Springs required)",
+          "Tuning ARB Stiffness (Race ARBs required)",
+          "Discipline-Specific Platform Strategy",
+          "Common Platform & Handling Mistakes",
+          "Glossary",
+          "Forza Horizon 6 Car Lists",
+          "Forza Horizon 6 Guides List",
+          "Forza Horizon 5 Car Lists"
+        ],
+        "updateLines": [
+          "Forza Horizon 6 Conversion Tuning Guide",
+          "Rally Springs & Dampers - Available on chassis that support off-road conversions. Unlocks the same full tuning suite as Race tier but at values calibrated for loose surfaces (higher ride heights, softer spring ranges). Use this for dirt racing builds."
+        ]
+      },
+      {
+        "digest": "c6c065ccdb170ad56b142fb42bd6cf5c434e198e6d73cbc0519e5ce04ddbd7ec",
+        "headings": [
+          "Forza Horizon 6 Tires & Rims Tuning Guide",
+          "Tire Compounds",
+          "Tire Compound by Discipline",
+          "Tire Width",
+          "Rim Style",
+          "Rim Size",
+          "Tuning Front and Rear Tire Pressure",
+          "Tire Pressure Track-Test Adjustments",
+          "Discipline-Specific Tire Strategy",
+          "Common Tire and Rim Mistakes",
+          "Glossary",
+          "Forza Horizon 6 Car Lists",
+          "Forza Horizon 6 Guides List",
+          "Forza Horizon 5 Car Lists"
+        ],
+        "updateLines": [
+          "Forza Horizon 6 Conversion Tuning Guide",
+          "Maximum width - Required for high-class builds (S1, S2, R) where every available grip helps. Often gated behind a Track Width / Widebody conversion (see the Conversion Tuning Guide).",
+          "Does your chassis allow the width without a Widebody conversion? If not, factor in the conversion's PI cost."
+        ]
+      },
+      {
+        "digest": "34a8b808eb0c9f41e5ecbd6f90e4fab3a1294854aaaf58ff08675595e691f63d",
+        "headings": [
+          "Forza Horizon 6 Aero & Appearance Tuning Guide",
+          "Front Bumpers",
+          "Rear Wings",
+          "Side Skirts",
+          "Hood",
+          "Tuning Front Downforce",
+          "Tuning Rear Downforce",
+          "Aero Balance",
+          "Aero Efficiency",
+          "Discipline-Specific Aero Strategy",
+          "Common Aero and Appearance Mistakes",
+          "Glossary",
+          "Forza Horizon 6 Car Lists",
+          "Forza Horizon 6 Guides List",
+          "Forza Horizon 5 Car Lists"
+        ],
+        "updateLines": [
+          "Forza Horizon 6 Conversion Tuning Guide",
+          "Race Front Bumper - The aero conversion that unlocks Front Downforce tuning. Required for any tunable front downforce setting.",
+          "Race Rear Wing - The aero conversion that unlocks Rear Downforce tuning. Required for any tunable rear downforce setting.",
+          "Widebody / Track Width - Conversion upgrades that widen the car's track and allow wider tires. Covered in detail in the Conversion Tuning Guide."
+        ]
+      },
+      {
+        "digest": "ffd171600ba87b66eec2137215344385f0206dbced0b2ae0bf849999d994ad2c",
+        "headings": [
+          "Forza Horizon 6 Drivetrain Tuning Guide",
+          "Drivetrain Conversions",
+          "Transmission",
+          "Clutch",
+          "Driveline",
+          "Differential",
+          "Differential Tuning - RWD and FWD",
+          "Differential Tuning - AWD",
+          "Discipline-Specific Drivetrain Strategy",
+          "Common Pitfalls and PI Optimization Tips",
+          "Glossary",
+          "Forza Horizon 6 Car Lists",
+          "Forza Horizon 6 Guides List",
+          "Forza Horizon 5 Car Lists"
+        ],
+        "updateLines": [
+          "Forza Horizon 6 Conversion Tuning Guide",
+          "Drivetrain Conversions",
+          "AWD swaps are not always worth it at lower classes. At B class, the PI cost of an AWD conversion can eat half your upgrade budget. Keep RWD/FWD stock unless the discipline demands AWD (dirt, CC)."
+        ]
+      },
+      {
+        "digest": "7cfc98fc4f58d4d296feb7570f75ccb4005b59329397c08d0961203706723dbb",
+        "headings": [
+          "Forza Horizon 6 Engine Tuning Guide",
+          "How Engine Upgrades Work in FH6",
+          "Intake",
+          "Intake Manifold",
+          "Fuel System",
+          "Ignition",
+          "Exhaust",
+          "Pistons and Compression",
+          "Valves and Valvetrain",
+          "Displacement (Engine Block)",
+          "Camshaft",
+          "Oil and Cooling",
+          "Flywheel",
+          "Engine Upgrade Install Order",
+          "Discipline-Specific Engine Strategy",
+          "PI Optimization Tricks for the Engine Category",
+          "Common Engine Tuning Mistakes",
+          "Glossary",
+          "Forza Horizon 6 Car Lists",
+          "Forza Horizon 6 Guides List",
+          "Forza Horizon 5 Car Lists"
+        ],
+        "updateLines": [
+          "Forza Horizon 6 Conversion Tuning Guide",
+          "Aspiration - The method by which air is delivered to the engine (Naturally Aspirated, Centrifugal Supercharger, Positive-Displacement Supercharger, Twin Turbo, Single Turbo). Covered in detail in our Conversion Tuning Guide.",
+          "Engine Swap - The complete replacement of one engine with another. The most consequential single conversion decision on most cars. Covered in detail in our Conversion Tuning Guide."
+        ]
+      }
+    ]
+  }
+}
