@@ -4,6 +4,7 @@ import {
   BUILD_CLASS_OPTIONS,
   CLASS_CAPS,
   applyBuildPlan,
+  configForPRStunt,
   defaultBuildConfig,
   defaultSelectedUpgrades,
   generateBuildPlan,
@@ -321,6 +322,97 @@ describe("build guide", () => {
         warning.includes("Drift Zones vereisen RWD"),
       ),
     ).toBe(true);
+  });
+
+  it.each([
+    {
+      type: "speed_trap" as const,
+      driveType: "AWD" as const,
+      expectedMode: "Wangan",
+      expectedSurface: "Road",
+      warning: "Speed Trap-mismatch",
+    },
+    {
+      type: "speed_zone" as const,
+      driveType: "RWD" as const,
+      expectedMode: "Race",
+      expectedSurface: "Road",
+      warning: "Speed Zone zonder bruikbare Aero",
+    },
+    {
+      type: "danger_sign" as const,
+      driveType: "RWD" as const,
+      expectedMode: "General",
+      expectedSurface: "Road",
+      warning: "AWD is aanbevolen",
+    },
+    {
+      type: "drift_zone" as const,
+      driveType: "AWD" as const,
+      expectedMode: "Drift",
+      expectedSurface: "Road",
+      warning: "past niet bij Drift Zone",
+    },
+    {
+      type: "trailblazer" as const,
+      driveType: "RWD" as const,
+      expectedMode: "Rally",
+      expectedSurface: "Mixed",
+      warning: "mismatch voor Trailblazer",
+    },
+  ])(
+    "maps $type to its stunt recipe and exposes technique",
+    ({ type, driveType, expectedMode, expectedSurface, warning }) => {
+      const input = {
+        ...DEFAULT_INPUT,
+        driveType,
+        hasAero: type === "speed_trap",
+        tireCompound: type === "trailblazer" ? "Race Semi-Slick" : DEFAULT_INPUT.tireCompound,
+      };
+      let config = configForPRStunt(defaultBuildConfig(input), type);
+      if (type === "speed_zone") config = { ...config, avoidAero: true };
+      const plan = generateBuildPlan(input, config);
+      expect(plan.config.tuneMode).toBe(expectedMode);
+      expect(plan.config.surface).toBe(expectedSurface);
+      expect(plan.stuntAdvice?.techniqueTips.length).toBeGreaterThanOrEqual(3);
+      expect(plan.warnings.some((item) => item.includes(warning))).toBe(true);
+    },
+  );
+
+  it("builds Trailblazer on Off-Road Tires and Off-Road Suspension", () => {
+    const config = configForPRStunt(
+      defaultBuildConfig(DEFAULT_INPUT),
+      "trailblazer",
+    );
+    const plan = generateBuildPlan(DEFAULT_INPUT, config);
+    expect(
+      plan.stages
+        .find((stage) => stage.id === "tires")
+        ?.upgrades.find((upgrade) => upgrade.tireCompound)?.tireCompound,
+    ).toBe("Off-Road");
+    expect(
+      plan.stages.find((stage) => stage.id === "chassis")?.upgrades[0].id,
+    ).toBe("offroad-suspension");
+  });
+
+  it("keeps Danger Sign on a road launch build with stunt-first ordering", () => {
+    const config = configForPRStunt(
+      defaultBuildConfig(DEFAULT_INPUT),
+      "danger_sign",
+    );
+    const plan = generateBuildPlan(DEFAULT_INPUT, config, RX7_PROFILE);
+    expect(plan.config.surface).toBe("Road");
+    expect(
+      plan.stages
+        .find((stage) => stage.id === "tires")
+        ?.upgrades.find((upgrade) => upgrade.tireCompound)?.tireCompound,
+    ).not.toBe("Rally");
+    expect(plan.stages.slice(0, 4).map((stage) => stage.id)).toEqual([
+      "power",
+      "foundation",
+      "tires",
+      "chassis",
+    ]);
   });
 
   it("defaults to recommended upgrades only", () => {

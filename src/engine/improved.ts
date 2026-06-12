@@ -41,6 +41,21 @@ const change = (
   }
 };
 
+const replace = (
+  sections: TuneSection[],
+  key: string,
+  amount: number | string,
+  confidence = 0.76,
+) => {
+  for (const section of sections) {
+    const item = section.values.find((candidate) => candidate.key === key);
+    if (!item) continue;
+    item.value = amount;
+    item.source = "improved";
+    item.confidence = confidence;
+  }
+};
+
 export function calculateImproved(input: TuneInput): TuneResult {
   const baseline = calculateBaseline(input);
   const result = copy(baseline);
@@ -250,6 +265,98 @@ export function calculateImproved(input: TuneInput): TuneResult {
       "Final Drive gebruikt de ForzaTune-methode met 3% RPM-marge onder de limiter.",
     );
   }
+
+  const stuntType = input.buildGuide?.prStuntType;
+  if (stuntType === "speed_trap") {
+    const pressureStep = input.unitSystem === "metric" ? 0.1 : 1.5;
+    change(result.sections, "pressure-front", (v) => v + pressureStep, 0.72);
+    change(result.sections, "pressure-rear", (v) => v + pressureStep, 0.72);
+    change(result.sections, "final-drive", (v) => Math.max(2.5, v * 0.92), 0.76);
+    change(result.sections, "arb-rear", (v) => Math.max(1, v * 0.94), 0.7);
+    replace(result.sections, "aero-front", "Minimum slider", 0.82);
+    replace(result.sections, "aero-rear", "Minimum slider", 0.82);
+    const gearing = result.sections.find((section) => section.id === "gearing");
+    if (gearing) {
+      gearing.tip =
+        "Maak Final Drive zo lang mogelijk met duidelijke headroom boven de verwachte camerasnelheid.";
+    }
+    const aero = result.sections.find((section) => section.id === "aero");
+    if (aero) {
+      aero.tip = "Zet front en rear downforce op de minimum slider voor maximale top speed.";
+    }
+    corrections.push(
+      "Speed Trap-variant: hogere tire pressure, minimale Aero, langere gearing en een stability-bias.",
+    );
+  }
+
+  if (stuntType === "speed_zone") {
+    change(result.sections, "final-drive", (v) => Math.max(2.5, v * 0.96), 0.76);
+    const aero = result.sections.find((section) => section.id === "aero");
+    if (aero) {
+      aero.tip =
+        "Behoud bruikbare downforce voor average speed en controleer Aero Balance rond 0,40-0,45.";
+    }
+    corrections.push(
+      "Speed Zone-variant: Race-balance behouden met langere gearing en Aero Balance 0,40-0,45.",
+    );
+  }
+
+  if (stuntType === "danger_sign") {
+    change(result.sections, "bump-front", (v) => v * 0.82, 0.78);
+    change(result.sections, "bump-rear", (v) => v * 0.82, 0.78);
+    change(result.sections, "rebound-front", (v) => v * 0.92, 0.74);
+    change(result.sections, "rebound-rear", (v) => v * 0.92, 0.74);
+    const rideStep = input.unitSystem === "metric" ? 2.5 : 1;
+    change(result.sections, "ride-front", (v) => v + rideStep, 0.68);
+    change(result.sections, "ride-rear", (v) => v + rideStep, 0.68);
+    change(result.sections, "final-drive", (v) => Math.max(2.5, v * 0.95), 0.72);
+    replace(result.sections, "aero-front", "Minimum slider", 0.82);
+    replace(result.sections, "aero-rear", "Minimum slider", 0.82);
+    const damping = result.sections.find((section) => section.id === "damping");
+    if (damping) {
+      damping.tip =
+        "Landing onrustig: verzacht eerst bump en verlaag daarna rebound licht; verander steeds een stap.";
+    }
+    corrections.push(
+      "Jump-variant: bump verzacht, rebound licht verlaagd, ride height een stap verhoogd en Aero geminimaliseerd.",
+    );
+    warnings.push(
+      "Ride height is een relatieve stap: klem op de echte in-game slidergrens en behoud voldoende suspension travel.",
+    );
+  }
+
+  if (stuntType === "drift_zone") {
+    warnings.push(
+      "Drift Zone scoort alleen met RWD; zet Traction Control en Stability Control uit.",
+    );
+  }
+
+  if (stuntType === "trailblazer") {
+    const rideHeight = input.unitSystem === "metric" ? 17.8 : 7;
+    replace(result.sections, "ride-front", rideHeight, 0.68);
+    replace(result.sections, "ride-rear", rideHeight, 0.68);
+    change(result.sections, "rebound-front", (v) => v + 2.2, 0.68);
+    change(result.sections, "rebound-rear", (v) => v + 2.2, 0.68);
+    change(result.sections, "final-drive", (v) => Math.min(6.5, v * 1.08), 0.72);
+    for (const key of [
+      "diff-front-accel",
+      "diff-front-decel",
+      "diff-rear-accel",
+      "diff-rear-decel",
+    ]) {
+      change(result.sections, key, (v) => v * 0.9, 0.72);
+    }
+    replace(result.sections, "diff-center", 65, 0.76);
+    const springs = result.sections.find((section) => section.id === "springs");
+    if (springs) {
+      springs.tip =
+        "Trailblazer start rond 5-7 in ride height; behoud travel en pas de echte slidergrenzen in-game toe.";
+    }
+    corrections.push(
+      "Trailblazer-variant: 7 in ride height, rebound +1,0 boven Race-richting, differential circa 10% opener, 65% rear center en kortere gearing.",
+    );
+  }
+
   if (input.inputMode === "quick") {
     warnings.push("Quick berekent geen gearing; kies Advanced en vul bevestigde RPM en topsnelheid in.");
   }
@@ -300,5 +407,6 @@ export function calculateImproved(input: TuneInput): TuneResult {
   result.confidence = round(Math.max(0.35, average - warnings.length * 0.04), 2);
   result.warnings = warnings;
   result.corrections = corrections;
+  result.techniqueTips = input.buildGuide?.techniqueTips;
   return result;
 }

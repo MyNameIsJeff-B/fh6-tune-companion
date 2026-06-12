@@ -6,6 +6,7 @@ import { calculateImproved } from "./improved";
 import { tuneAsText } from "../storage/tunes";
 import {
   applyBuildPlan,
+  configForPRStunt,
   defaultBuildConfig,
   defaultSelectedUpgrades,
   generateBuildPlan,
@@ -302,7 +303,7 @@ describe("tuning engine", () => {
     expect(
       advanced.sections.find((item) => item.id === "gearing")?.values.length,
     ).toBeGreaterThan(1);
-    expect(advanced.engineVersion).toBe("fh6-companion-0.5.0");
+    expect(advanced.engineVersion).toBe("fh6-companion-0.6.0");
   });
 
   it("keeps Rally pressure separate from the low-pressure Off-Road band", () => {
@@ -437,6 +438,126 @@ describe("tuning engine", () => {
     expect(
       diff?.values.find((value) => value.key === "diff-rear-decel")?.value,
     ).toBe(30);
+  });
+
+  const stuntInput = (
+    type:
+      | "speed_trap"
+      | "speed_zone"
+      | "danger_sign"
+      | "drift_zone"
+      | "trailblazer",
+    driveType: DriveType = "AWD",
+  ) => {
+    const base = {
+      ...DEFAULT_INPUT,
+      inputMode: "advanced" as const,
+      driveType,
+      hasAero: true,
+      includeGearing: true,
+      capabilities: {
+        ...DEFAULT_INPUT.capabilities,
+        aero: true,
+        gearing: "full" as const,
+      },
+    };
+    const config = configForPRStunt(defaultBuildConfig(base), type);
+    const plan = generateBuildPlan(base, config);
+    return applyBuildPlan(base, plan, defaultSelectedUpgrades(plan));
+  };
+
+  it("uses the Speed variant for Speed Traps", () => {
+    const input = {
+      ...stuntInput("speed_trap"),
+      hasAero: true,
+      capabilities: {
+        ...stuntInput("speed_trap").capabilities,
+        aero: true,
+      },
+    };
+    const result = calculateImproved(input);
+    const aero = result.sections.find((section) => section.id === "aero");
+    expect(aero?.values.find((value) => value.key === "aero-front")?.value).toBe(
+      "Minimum slider",
+    );
+    expect(
+      result.corrections.some((item) => item.includes("Speed Trap-variant")),
+    ).toBe(true);
+    expect(result.techniqueTips?.[0]).toContain("1-2 km");
+  });
+
+  it("keeps Speed Zones in Race with longer gearing and aero guidance", () => {
+    const input = stuntInput("speed_zone");
+    const standard = calculateImproved({
+      ...input,
+      buildGuide: undefined,
+      tuneMode: "Race",
+    });
+    const result = calculateImproved(input);
+    const finalDrive = (value: ReturnType<typeof calculateImproved>) =>
+      Number(
+        value.sections
+          .find((section) => section.id === "gearing")
+          ?.values.find((item) => item.key === "final-drive")?.value,
+      );
+    expect(finalDrive(result)).toBeLessThan(finalDrive(standard));
+    expect(result.sections.find((section) => section.id === "aero")?.tip).toContain(
+      "0,40-0,45",
+    );
+  });
+
+  it("uses the Jump variant for Danger Signs", () => {
+    const input = stuntInput("danger_sign", "RWD");
+    const standard = calculateImproved({
+      ...input,
+      buildGuide: undefined,
+      tuneMode: "General",
+    });
+    const result = calculateImproved(input);
+    const value = (
+      output: ReturnType<typeof calculateImproved>,
+      sectionId: "damping" | "springs",
+      key: string,
+    ) =>
+      Number(
+        output.sections
+          .find((section) => section.id === sectionId)
+          ?.values.find((item) => item.key === key)?.value,
+      );
+    expect(value(result, "damping", "bump-front")).toBeLessThan(
+      value(standard, "damping", "bump-front"),
+    );
+    expect(value(result, "damping", "rebound-front")).toBeLessThan(
+      value(standard, "damping", "rebound-front"),
+    );
+    expect(value(result, "springs", "ride-front")).toBeGreaterThan(
+      value(standard, "springs", "ride-front"),
+    );
+  });
+
+  it("adds the hard Drift Zone scoring guidance", () => {
+    const result = calculateImproved(stuntInput("drift_zone", "AWD"));
+    expect(
+      result.warnings.some((item) => item.includes("scoort alleen met RWD")),
+    ).toBe(true);
+    expect(result.techniqueTips?.join(" ")).toContain("Stability Control");
+  });
+
+  it("uses Cross Country deltas for Trailblazers", () => {
+    const input = stuntInput("trailblazer");
+    const result = calculateImproved(input);
+    const differential = result.sections.find(
+      (section) => section.id === "differential",
+    );
+    expect(
+      differential?.values.find((value) => value.key === "diff-center")?.value,
+    ).toBe(65);
+    expect(result.sections.find((section) => section.id === "springs")?.tip).toContain(
+      "5-7 in",
+    );
+    expect(
+      result.corrections.some((item) => item.includes("kortere gearing")),
+    ).toBe(true);
   });
 
   it("creates an immutable diagnosis revision", () => {

@@ -59,4 +59,23 @@ describe("BuildGuide UI", () => {
       ).toBeInTheDocument(),
     );
   });
+
+  it("offers all PR Stunt types and shows technique guidance", async () => {
+    render(
+      <BuildGuide input={DEFAULT_INPUT} onApply={vi.fn()} onManual={vi.fn()} />,
+    );
+
+    await waitFor(() =>
+      expect(screen.getByText(/Generiek profiel actief/)).toBeInTheDocument(),
+    );
+    fireEvent.click(screen.getByRole("button", { name: "PR Stunt" }));
+
+    expect(screen.getByRole("button", { name: /Speed Trap/ })).toHaveClass(
+      "is-active",
+    );
+    expect(screen.getByRole("button", { name: /Danger Sign/ })).toBeVisible();
+    expect(screen.getByRole("button", { name: /Trailblazer/ })).toBeVisible();
+    expect(screen.getByText("Speed Trap-recept")).toBeVisible();
+    expect(screen.getByText(/1-2 km run-up/)).toBeVisible();
+  });
 });

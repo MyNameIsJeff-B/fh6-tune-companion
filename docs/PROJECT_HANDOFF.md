@@ -1,10 +1,10 @@
 # Project Handoff
 
-Laatst bijgewerkt: 11 juni 2026
+Laatst bijgewerkt: 12 juni 2026
 
 ## Huidige status
 
-FH6 Tune Companion `0.7.0` is een werkende mobiele PWA met:
+FH6 Tune Companion `0.8.0` is een werkende mobiele PWA met:
 
 - auto zoeken of handmatig invoeren;
 - Nederlandstalige Build Guide met per-auto profiel, discipline, ondergrond,
@@ -19,7 +19,11 @@ FH6 Tune Companion `0.7.0` is een werkende mobiele PWA met:
   koud-asfaltwaarschuwingen;
 - Quick en Advanced invoer;
 - acht tune-modi;
-- verbeterd advies plus optionele TuneLab-vergelijking;
+- één duidelijk, eigen advies zonder TuneLab-vergelijking in de interface;
+- PR Stunt-doel met Speed Trap, Speed Zone, Danger Sign, Drift Zone en
+  Trailblazer;
+- stunt-specifieke buildrecepten, mismatchwaarschuwingen, tunevarianten en
+  techniekadvies;
 - Feel Adjuster;
 - diagnose met uitlegbare, onveranderlijke revisies;
 - lokale garage;
@@ -65,10 +69,10 @@ Repository:
 
 | Onderdeel | Versie |
 | --- | --- |
-| App | `0.7.0` |
-| Eigen tune-engine | `fh6-companion-0.5.0` |
+| App | `0.8.0` |
+| Eigen tune-engine | `fh6-companion-0.6.0` |
 | TuneLab-baseline | `tunelab-1.7.0` |
-| Build Guide | `build-guide-0.5.0` |
+| Build Guide | `build-guide-0.6.0` |
 | Catalogus | `tunelab-v7+fh6-local-2026-06-10` |
 | Lokale opslag | `fh6-tune-companion:v1:tunes` |
 
@@ -96,7 +100,8 @@ Guide staan daar los van. Zie `licenses/TUNELAB-MIT.txt` en
 1. `src/data/cars.ts` laadt `public/data/cars.json`.
 2. `src/build-guide/profiles.ts` koppelt de auto conservatief aan
    `public/data/build-profiles.json`.
-3. De gebruiker kiest discipline, klasse, focus en buildbeperkingen.
+3. De gebruiker kiest een normale build of PR Stunt, daarna discipline/subtype,
+   klasse, focus en buildbeperkingen.
 4. `src/build-guide/engine.ts` combineert profiel en keuzes tot een upgradeplan en
    leidt capabilities af.
 5. `src/engine/baseline.ts` maakt het TuneLab-resultaat.
@@ -125,6 +130,8 @@ Guide staan daar los van. Zie `licenses/TUNELAB-MIT.txt` en
   gecontroleerd.
 - Het verbeterde model is technisch en scenario-matig getest, maar nog niet breed
   gevalideerd met echte FH6-ritten.
+- De nieuwe PR Stunt-richtingen zijn bron- en scenariogestuurd. Exacte ride-height
+  stappen, ramp speed en locatiegebonden targets wachten op praktijkvalidatie.
 - Damping is nog niet gewichtsgeleid en de huidige road spring-percentages zijn
   nog niet via telemetry gevalideerd. Dit zijn de eerstvolgende fundamentele fixes.
 - De PI-class caps en precieze R-class-definitie spreken in openbare bronnen
@@ -158,6 +165,31 @@ Herstel vanaf cache `fh6-tune-v6`:
 
 ## Laatst uitgevoerde kwaliteitscontrole
 
+Op 12 juni 2026 voor app `0.8.0`:
+
+- ESLint schoon in een schone tijdelijke runtime.
+- 95 Vitest-tests geslaagd, inclusief vijf subtype-scenario's, Speed- en
+  Jump-varianten, Drift Zone RWD, Trailblazer Cross Country en de nieuwe UI-flow.
+- Pages-productiebuild geslaagd.
+- TuneLab-tab, vergelijkingsknop, vergelijkingsmodal en bijbehorende UI-state zijn
+  verwijderd; de MIT-licentie en interne compatibele baseline blijven behouden.
+- Service-workercache `fh6-tune-v11` staat klaar voor de atomaire update.
+- De lokale render-QA corrigeerde Danger Sign van een te brede Mixed/Rally-basis
+  naar Road/All-round met een expliciete stuntvolgorde.
+- Browserbeleid aangescherpt: behandel `CreateProcessWithLogonW failed: 267` als
+  een historische/omgevinggebonden fout, test de ingebouwde Browser iedere sessie
+  opnieuw en gebruik Playwright alleen na een verse mislukking. In deze workspace-
+  sessie faalde ook de schone hertest, waarna de Pages-achtige kandidaat met de
+  Playwright CLI is gecontroleerd.
+- Pages-achtige render-QA geslaagd op 390 x 844 voor de volledige RX-7 -> PR Stunt
+  -> Danger Sign -> resultaatflow; techniekkaart, Jump-waarschuwingen en het enige
+  persoonlijke advies zijn zichtbaar zonder consolefouten.
+- Op 320 x 844 is geen horizontale overflow; autodatabase, buildprofielen, lokale
+  assets en fonts laden.
+- Een bestaande sessie migreerde na vervanging van de release naar de nieuwe
+  gehashte asset zonder leeg scherm. Na een eerste online bezoek herlaadt de app
+  met service-worker cache `fh6-tune-v11` volledig offline.
+
 Op 11 juni 2026 voor Build Guide `0.5.0`:
 
 - ESLint schoon.
@@ -188,7 +220,7 @@ Op 11 juni 2026 voor Build Guide `0.5.0`:
 - Gecontroleerde flow: per-auto veergrenzen bewaren, Quick zonder gearing,
   Advanced met redline-uitleg en berekende final drive.
 - De ingebouwde Codex-browser kon door een Windows-runtimefout niet starten;
-  dezelfde controles zijn uitgevoerd met de Playwright CLI-fallback.
+  in die sessie zijn dezelfde controles uitgevoerd met de Playwright CLI-fallback.
 - GitHub Pages workflow `27345829984` en deployment zijn geslaagd vanaf releasecommit
   `ff6e475`.
 - De echte live URL is getest op 390 x 844: gewijzigde invoerflow, autodatabase,
@@ -200,8 +232,8 @@ Op 11 juni 2026 voor Build Guide `0.5.0`:
 - De componenttest dekt zichtbare waarschuwingen, capability-labels en exclusieve
   Sport/Race Differential-selectie.
 - Er is voor deze laatste UI-ronde geen nieuwe visuele browser-QA uitgevoerd,
-  omdat de ingebouwde Codex-browser nog steeds faalt met de bekende Windows
-  `CreateProcessWithLogonW`-fout.
+  omdat de ingebouwde Codex-browser in die sessie faalde met Windows-fout
+  `CreateProcessWithLogonW failed: 267`.
 - Service-workercache `fh6-tune-v10` forceert een atomaire update naar app `0.7.0`.
 - De diagnoseflow bewaart vanaf `0.7.0` de voorgaande revisie, koppelt testcontext
   aan de nieuwe revisie en toont de volledige keten terug in de app.
@@ -210,8 +242,8 @@ Op 11 juni 2026 voor Build Guide `0.5.0`:
 - 82 Vitest-tests zijn groen, inclusief React-interactietests van handmatige invoer
   via diagnose naar een geschiedenis met twee revisies en van de mobiele
   installatie-instructies.
-- De in-app Browser kon op 12 juni 2026 opnieuw niet starten door dezelfde Windows
-  `CreateProcessWithLogonW`-fout; er is geen externe browserfallback gebruikt.
+- De in-app Browser kon in die sessie op 12 juni 2026 niet starten door Windows-fout
+  `CreateProcessWithLogonW failed: 267`; er is toen geen externe fallback gebruikt.
 
 ### Foundation Fix Sprint A
 
@@ -221,9 +253,9 @@ Op 11 juni 2026 zijn audititems A3-A6, B1-B5, C3, C5, C6 en C8 verwerkt:
 - ESLint schoon;
 - Pages-productiebuild geslaagd;
 - TuneLab-baseline blijft apart; de FH6-correcties staan in `improved.ts`;
-- de in-app Browser-runtime startte niet door de bekende Windows
-  `CreateProcessWithLogonW`-fout, waardoor geautomatiseerde render-QA lokaal niet
-  opnieuw kon worden uitgevoerd.
+- de in-app Browser-runtime startte in die sessie niet door Windows-fout
+  `CreateProcessWithLogonW failed: 267`, waardoor geautomatiseerde render-QA
+  lokaal niet opnieuw kon worden uitgevoerd.
 
 Wacht nog op Jeffs in-game of telemetry-validatie:
 

@@ -137,6 +137,7 @@ export interface TuneResult {
   confidence: number;
   warnings: string[];
   corrections: string[];
+  techniqueTips?: string[];
   parentRevisionId?: string;
   revisionReason?: string;
   testRun?: TestRunContext;

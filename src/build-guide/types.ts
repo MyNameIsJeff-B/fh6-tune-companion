@@ -13,6 +13,15 @@ export type BuildFocus =
   | "speed"
   | "control";
 
+export type BuildGoal = "standard" | "pr-stunt";
+
+export type PRStuntType =
+  | "speed_trap"
+  | "speed_zone"
+  | "danger_sign"
+  | "drift_zone"
+  | "trailblazer";
+
 export type BuildPriority = "recommend" | "optional" | "later" | "avoid";
 
 export type BuildUpgradeId =
@@ -49,6 +58,8 @@ export type BuildUpgradeId =
   | "widebody";
 
 export interface BuildGuideConfig {
+  goal: BuildGoal;
+  prStuntType?: PRStuntType;
   tuneMode: TuneMode;
   season: Season;
   surface: Surface;
@@ -58,6 +69,14 @@ export interface BuildGuideConfig {
   keepStockEngine: boolean;
   keepStockDrivetrain: boolean;
   avoidAero: boolean;
+}
+
+export interface PRStuntAdvice {
+  type: PRStuntType;
+  label: string;
+  summary: string;
+  techniqueTips: string[];
+  sourceIds: string[];
 }
 
 export interface BuildUpgrade {
@@ -112,12 +131,15 @@ export interface BuildPlan {
   piBudget: number;
   confidence: number;
   warnings: string[];
+  stuntAdvice?: PRStuntAdvice;
   profile?: BuildCarProfile;
   stages: BuildStage[];
 }
 
 export interface AppliedBuildGuide {
   version: string;
+  goal?: BuildGoal;
+  prStuntType?: PRStuntType;
   focus: BuildFocus;
   targetClass: string;
   targetPi: number;
@@ -129,6 +151,7 @@ export interface AppliedBuildGuide {
   avoidAero?: boolean;
   selectedUpgradeIds: BuildUpgradeId[];
   warnings: string[];
+  techniqueTips?: string[];
   valuesConfirmed: boolean;
 }
 

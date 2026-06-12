@@ -9,13 +9,15 @@ import type {
   BuildCarProfile,
   BuildPlan,
   BuildPriority,
+  PRStuntAdvice,
+  PRStuntType,
   BuildStage,
   BuildUpgrade,
   BuildUpgradeId,
 } from "./types";
 import { seasonProfile } from "../domain/seasons";
 
-export const BUILD_GUIDE_VERSION = "build-guide-0.5.0";
+export const BUILD_GUIDE_VERSION = "build-guide-0.6.0";
 
 // FH6 sources conflict on the post-launch PI caps, and R may be a type class
 // rather than a true 999-point band. Keep these caps until verified in-game.
@@ -35,6 +37,126 @@ export const BUILD_CLASS_OPTIONS = ["D", "C", "B", "A", "S1", "S2", "R"];
 
 const source = ["forzatune-guide", "quicktune-guide", "optn", "in-game"];
 const CLASS_ORDER = ["D", "C", "B", "A", "S1", "S2", "R"];
+
+export const PR_STUNT_OPTIONS: Array<{
+  id: PRStuntType;
+  label: string;
+  sub: string;
+}> = [
+  { id: "speed_trap", label: "Speed Trap", sub: "Pure top speed" },
+  { id: "speed_zone", label: "Speed Zone", sub: "Average speed + grip" },
+  { id: "danger_sign", label: "Danger Sign", sub: "Launch + landing" },
+  { id: "drift_zone", label: "Drift Zone", sub: "Angle + speed" },
+  { id: "trailblazer", label: "Trailblazer", sub: "Open-terrain time" },
+];
+
+const PR_STUNT_ADVICE: Record<PRStuntType, PRStuntAdvice> = {
+  speed_trap: {
+    type: "speed_trap",
+    label: "Speed Trap",
+    summary: "Max power, minimale Aero en de langste bruikbare gearing.",
+    techniqueTips: [
+      "Neem 1-2 km run-up op de langste rechte aanloop.",
+      "Gebruik drafting achter AI-verkeer en vlieg waar mogelijk downhill aan.",
+      "Zet verkeer zo laag mogelijk en rem pas na de camera.",
+    ],
+    sourceIds: ["bossdown-pr-stunts", "gamingpromax-pr-stunts", "forzafire-aero"],
+  },
+  speed_zone: {
+    type: "speed_zone",
+    label: "Speed Zone",
+    summary: "Road Race-grip met langere gearing en een speed-bias.",
+    techniqueTips: [
+      "Optimaliseer de gemiddelde snelheid: offer geen corner speed op voor alleen top speed.",
+      "Gebruik een vloeiende lijn en rem vroeg genoeg om de volledige zone snelheid mee te nemen.",
+      "Controleer Aero Balance rond 0,40-0,45 als verstelbare Aero aanwezig is.",
+    ],
+    sourceIds: ["bossdown-pr-stunts", "gamingpromax-pr-stunts", "game8-aero"],
+  },
+  danger_sign: {
+    type: "danger_sign",
+    label: "Danger Sign",
+    summary: "Acceleration, rechte launch en landing-reserve gaan voor circuitbalans.",
+    techniqueTips: [
+      "Meet de run-up in wegsegmenten, niet in autolengtes.",
+      "Raak de ramp volledig recht; een paar graden yaw kost veel afstand.",
+      "Gebruik rewind wanneer verkeer de aanloop of launch verstoort.",
+    ],
+    sourceIds: ["bossdown-pr-stunts", "gamesgg-danger-signs", "fh6wiki-landing"],
+  },
+  drift_zone: {
+    type: "drift_zone",
+    label: "Drift Zone",
+    summary: "Bestaande Drift-branch met een harde RWD- en assists-regel.",
+    techniqueTips: [
+      "RWD is verplicht voor score; AWD en FWD tellen niet mee.",
+      "Schakel Traction Control en Stability Control uit.",
+      "Bouw score met een constante slip angle en snelheid, niet met losse powerslides.",
+    ],
+    sourceIds: ["bossdown-pr-stunts", "gamingpromax-pr-stunts", "in-game"],
+  },
+  trailblazer: {
+    type: "trailblazer",
+    label: "Trailblazer",
+    summary: "Cross Country-build met Off-Road Tires, travel en herstelacceleratie.",
+    techniqueTips: [
+      "Kies de snelste terreinlijn, niet automatisch de kortste rechte lijn.",
+      "Vermijd bomen, diepe rivieren en harde compressies die alle momentum kosten.",
+      "Gebruik korte gearing om na jumps en langzame secties direct te herstellen.",
+    ],
+    sourceIds: ["bossdown-pr-stunts", "gamingpromax-pr-stunts", "forzafire-aero"],
+  },
+};
+
+export const getPRStuntAdvice = (type?: PRStuntType) =>
+  type ? PR_STUNT_ADVICE[type] : undefined;
+
+export const configForPRStunt = (
+  config: BuildGuideConfig,
+  type: PRStuntType,
+): BuildGuideConfig => {
+  const mapped: Record<
+    PRStuntType,
+    Pick<BuildGuideConfig, "tuneMode" | "surface" | "focus" | "avoidAero">
+  > = {
+    speed_trap: {
+      tuneMode: "Wangan",
+      surface: "Road",
+      focus: "speed",
+      avoidAero: true,
+    },
+    speed_zone: {
+      tuneMode: "Race",
+      surface: "Road",
+      focus: "speed",
+      avoidAero: false,
+    },
+    danger_sign: {
+      tuneMode: "General",
+      surface: "Road",
+      focus: "acceleration",
+      avoidAero: true,
+    },
+    drift_zone: {
+      tuneMode: "Drift",
+      surface: "Road",
+      focus: "control",
+      avoidAero: true,
+    },
+    trailblazer: {
+      tuneMode: "Rally",
+      surface: "Mixed",
+      focus: "control",
+      avoidAero: true,
+    },
+  };
+  return {
+    ...config,
+    goal: "pr-stunt",
+    prStuntType: type,
+    ...mapped[type],
+  };
+};
 
 const upgrade = (
   id: BuildUpgradeId,
@@ -65,6 +187,14 @@ const tireChoice = (
   config: BuildGuideConfig,
   profile?: BuildCarProfile,
 ): Pick<BuildUpgrade, "id" | "name" | "tireCompound" | "detail"> => {
+  if (config.prStuntType === "trailblazer") {
+    return {
+      id: "offroad-tires",
+      name: "Off-Road Tires",
+      tireCompound: "Off-Road",
+      detail: "Trailblazer vereist impactabsorptie en traction op open, ruw terrein.",
+    };
+  }
   if (config.surface === "Snow") {
     return {
       id: "snow-tires",
@@ -227,6 +357,8 @@ export function defaultBuildConfig(input: TuneInput): BuildGuideConfig {
           : input.carClass
         : "A";
   return {
+    goal: saved?.goal ?? (saved?.prStuntType ? "pr-stunt" : "standard"),
+    prStuntType: saved?.prStuntType,
     tuneMode: saved?.tuneMode ?? input.tuneMode,
     season: saved?.season ?? input.season ?? "Summer",
     surface: saved?.surface ?? input.surface,
@@ -244,6 +376,11 @@ export function generateBuildPlan(
   config: BuildGuideConfig,
   profile?: BuildCarProfile,
 ): BuildPlan {
+  const stuntAdvice =
+    config.goal === "pr-stunt"
+      ? getPRStuntAdvice(config.prStuntType ?? "speed_trap")
+      : undefined;
+  const stuntType = stuntAdvice?.type;
   const profileRequires = (term: string) =>
     profile?.required.some((item) => item.toLowerCase().includes(term)) ?? false;
   const profileAvoids = (...terms: string[]) =>
@@ -259,7 +396,8 @@ export function generateBuildPlan(
   const roadRace =
     config.surface === "Road" &&
     !["Drag", "Drift"].includes(config.tuneMode);
-  const crossCountryProfile = profile?.preset === "cross_country_a_s1";
+  const crossCountryProfile =
+    profile?.preset === "cross_country_a_s1" || stuntType === "trailblazer";
   const fullDifferential =
     !["D", "C"].includes(config.targetClass) ||
     ["Drift", "Rally"].includes(config.tuneMode) ||
@@ -486,7 +624,8 @@ export function generateBuildPlan(
   const powerEarly =
     config.focus === "speed" ||
     config.focus === "acceleration" ||
-    ["Drag", "Wangan"].includes(config.tuneMode);
+    ["Drag", "Wangan"].includes(config.tuneMode) ||
+    ["speed_trap", "danger_sign"].includes(stuntType ?? "");
   const power = stage(
     "power",
     "Power",
@@ -525,7 +664,8 @@ export function generateBuildPlan(
     !profileAvoids("heavy aero", "circuit aero", "no aero") &&
     !offroad &&
     config.tuneMode !== "Drag" &&
-    ["A", "S1", "S2", "R", "X"].includes(config.targetClass);
+    ["A", "S1", "S2", "R", "X"].includes(config.targetClass) &&
+    !["speed_trap", "danger_sign", "trailblazer"].includes(stuntType ?? "");
   const aero = stage(
     "aero",
     "Aero",
@@ -591,6 +731,43 @@ export function generateBuildPlan(
       "FH6 Drift Zones vereisen RWD voor de score; schakel Traction Control en Stability Control uit.",
     );
   }
+  if (stuntType === "drift_zone" && input.driveType !== "RWD") {
+    warnings.push(
+      `${input.driveType} past niet bij Drift Zone: bouw of kies een RWD-auto voordat je op score rijdt.`,
+    );
+  }
+  if (stuntType === "speed_trap" && input.hasAero) {
+    warnings.push(
+      "Speed Trap-mismatch: zet verstelbare front en rear Aero op minimum of verwijder zware race-aero als de PI elders meer oplevert.",
+    );
+  }
+  if (stuntType === "speed_zone" && config.avoidAero) {
+    warnings.push(
+      "Speed Zone zonder bruikbare Aero kan average speed kosten; behoud high-speed grip en mik op Aero Balance 0,40-0,45.",
+    );
+  }
+  if (stuntType === "trailblazer") {
+    if (input.driveType !== "AWD") {
+      warnings.push(
+        `${input.driveType} is een mismatch voor Trailblazer; AWD is de betrouwbare keuze voor open terrein.`,
+      );
+    }
+    if (input.tireCompound !== "Off-Road") {
+      warnings.push(
+        `De huidige ${input.tireCompound} build past niet bij Trailblazer; monteer Off-Road Tires en Off-Road Suspension.`,
+      );
+    }
+  }
+  if (stuntType === "danger_sign" && input.driveType !== "AWD") {
+    warnings.push(
+      `${input.driveType} kan werken, maar AWD is aanbevolen om de korte run-up zonder wheelspin te benutten.`,
+    );
+  }
+  if (stuntType === "danger_sign" && input.hasAero) {
+    warnings.push(
+      "Danger Sign-mismatch: zet verstelbare Aero op minimum; extra downforce drukt het vliegtraject plat.",
+    );
+  }
   if (config.targetPi < input.pi) {
     warnings.push("De target PI ligt onder de huidige auto; verwijder eerst upgrades in FH6.");
   }
@@ -631,6 +808,13 @@ export function generateBuildPlan(
     Wangan: ["power", "foundation", "tires", "aero", "chassis", "weight"],
     Rain: ["tires", "chassis", "weight", "foundation", "power", "aero"],
   };
+  const stuntOrder: Record<PRStuntType, BuildStage["id"][]> = {
+    speed_trap: ["power", "foundation", "tires", "aero", "chassis", "weight"],
+    speed_zone: ["tires", "aero", "foundation", "chassis", "power", "weight"],
+    danger_sign: ["power", "foundation", "tires", "chassis", "weight", "aero"],
+    drift_zone: ["tires", "foundation", "chassis", "weight", "power", "aero"],
+    trailblazer: ["tires", "chassis", "foundation", "weight", "power", "aero"],
+  };
   const profileOrder = profile?.order.flatMap((item): BuildStage["id"][] => {
     const value = item.toLowerCase();
     if (value.includes("tire") || value.includes("slick")) return ["tires"];
@@ -656,6 +840,7 @@ export function generateBuildPlan(
     return [];
   });
   const requestedOrder =
+    (stuntType ? stuntOrder[stuntType] : undefined) ??
     disciplineOrder[config.tuneMode] ??
     (profileOrder?.length ? profileOrder : genericOrder);
   const stageOrder = [...new Set([...requestedOrder, ...genericOrder])];
@@ -679,6 +864,7 @@ export function generateBuildPlan(
       ).toFixed(2),
     ),
     warnings,
+    stuntAdvice,
     profile,
     stages: orderedStages,
   };
@@ -721,6 +907,8 @@ export function applyBuildPlan(
   const compound = selectedUpgrades.find((item) => item.tireCompound)?.tireCompound;
   const applied: AppliedBuildGuide = {
     version: plan.version,
+    goal: plan.config.goal,
+    prStuntType: plan.config.prStuntType,
     focus: plan.config.focus,
     targetClass: plan.config.targetClass,
     targetPi: plan.config.targetPi,
@@ -732,6 +920,7 @@ export function applyBuildPlan(
     avoidAero: plan.config.avoidAero,
     selectedUpgradeIds: selectedIds,
     warnings: plan.warnings,
+    techniqueTips: plan.stuntAdvice?.techniqueTips,
     valuesConfirmed: false,
   };
 

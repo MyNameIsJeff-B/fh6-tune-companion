@@ -25,7 +25,6 @@ import { TuneSections } from "./components/TuneSections";
 import { loadCars } from "./data/cars";
 import {
   ALL_CAPABILITIES,
-  BASELINE_VERSION,
   DEFAULT_INPUT,
   ENGINE_VERSION,
   TUNE_MODES,
@@ -45,7 +44,6 @@ import type {
   TuneResult,
   UnitSystem,
 } from "./domain/types";
-import { calculateBaseline } from "./engine/baseline";
 import { applyDiagnosis, DIAGNOSES } from "./engine/diagnosis";
 import { calculateImproved } from "./engine/improved";
 import {
@@ -145,11 +143,9 @@ function App() {
   const [carSearch, setCarSearch] = useState("Mazda RX-7");
   const [buildMode, setBuildMode] = useState<"guide" | "manual">("guide");
   const [result, setResult] = useState<TuneResult | null>(null);
-  const [baseline, setBaseline] = useState<TuneResult | null>(null);
-  const [showBaseline, setShowBaseline] = useState(false);
   const [saved, setSaved] = useState<TuneResult[]>(loadSavedTunes);
   const [modal, setModal] = useState<
-    "diagnosis" | "garage" | "history" | "compare" | "menu" | null
+    "diagnosis" | "garage" | "history" | "menu" | null
   >(null);
   const [testRunDraft, setTestRunDraft] = useState<
     Omit<TestRunContext, "observedAt">
@@ -263,9 +259,7 @@ function App() {
         input.includeGearing &&
         input.capabilities.gearing !== "none",
     };
-    setBaseline(calculateBaseline(finalInput));
     setResult(calculateImproved(finalInput));
-    setShowBaseline(false);
     setStep(3);
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
@@ -326,7 +320,6 @@ function App() {
     setNotice("Bijstelling als nieuwe revisie opgeslagen");
   };
 
-  const displayResult = showBaseline ? baseline : result;
   const tuneHistory = useMemo(
     () => (result ? tuneHistoryFor(saved, result) : []),
     [result, saved],
@@ -339,11 +332,9 @@ function App() {
         item.input.year,
         item.input.make,
         item.input.model,
-      );
+    );
     setInput({ ...item.input, springSliderRange });
     setResult(item);
-    setBaseline(calculateBaseline({ ...item.input, springSliderRange }));
-    setShowBaseline(false);
     setStep(3);
     setModal(null);
   };
@@ -893,7 +884,7 @@ function App() {
           </section>
         ) : null}
 
-        {step === 3 && displayResult ? (
+        {step === 3 && result ? (
           <section className="result-screen">
             <div className="result-identity">
               <div>
@@ -910,34 +901,22 @@ function App() {
               <small>{input.tuneMode}</small>
             </div>
 
-            <div className="result-tabs">
-              <button
-                type="button"
-                className={!showBaseline ? "is-active" : ""}
-                onClick={() => setShowBaseline(false)}
-              >
+            <div className="result-tabs result-tabs--single">
+              <strong>
                 <Check size={18} />
-                Verbeterd advies
-              </button>
-              <button
-                type="button"
-                className={showBaseline ? "is-active" : ""}
-                onClick={() => setShowBaseline(true)}
-              >
-                <SlidersHorizontal size={18} />
-                TuneLab-basis
-              </button>
+                Persoonlijk advies
+              </strong>
               <span>
                 Vertrouwen
-                <b>{Math.round(displayResult.confidence * 100)}%</b>
+                <b>{Math.round(result.confidence * 100)}%</b>
               </span>
             </div>
 
-            {displayResult.warnings.length ? (
+            {result.warnings.length ? (
               <div className="warning-panel">
                 <AlertTriangle size={20} />
                 <div>
-                  {displayResult.warnings.map((warning) => (
+                  {result.warnings.map((warning) => (
                     <p key={warning}>{warning}</p>
                   ))}
                 </div>
@@ -973,21 +952,21 @@ function App() {
               </button>
             ) : null}
 
-            <TuneSections sections={displayResult.sections} />
-
-            {!showBaseline && result?.corrections.length ? (
-              <button
-                type="button"
-                className="comparison-note"
-                onClick={() => setModal("compare")}
-              >
-                <SlidersHorizontal size={20} />
-                <span>
-                  <strong>{result.corrections.length} verbeteringen toegepast</strong>
-                  Bekijk waarom ons advies afwijkt
-                </span>
-              </button>
+            {result.techniqueTips?.length ? (
+              <article className="result-technique">
+                <div>
+                  <Gauge size={19} />
+                  <strong>PR Stunt-techniek</strong>
+                </div>
+                <ol>
+                  {result.techniqueTips.map((tip) => (
+                    <li key={tip}>{tip}</li>
+                  ))}
+                </ol>
+              </article>
             ) : null}
+
+            <TuneSections sections={result.sections} />
 
             <div className="result-actions">
               <button type="button" onClick={saveCurrent}>
@@ -1132,23 +1111,6 @@ function App() {
         </Modal>
       ) : null}
 
-      {modal === "compare" && result ? (
-        <Modal title="Waarom wij afwijken" onClose={() => setModal(null)}>
-          <div className="correction-list">
-            {result.corrections.map((correction) => (
-              <p key={correction}>
-                <Check size={18} />
-                {correction}
-              </p>
-            ))}
-          </div>
-          <p className="modal-note">
-            De TuneLab-basis blijft ongewijzigd beschikbaar voor controle. Ons model
-            past alleen versieerbare regels toe.
-          </p>
-        </Modal>
-      ) : null}
-
       {modal === "garage" ? (
         <Modal title="Opgeslagen tunes" onClose={() => setModal(null)} wide>
           <div className="garage-toolbar">
@@ -1265,10 +1227,9 @@ function App() {
             Build Guide {BUILD_GUIDE_VERSION.replace("build-guide-", "")}
           </p>
           <p className="modal-note">
-            TuneLab-baseline {BASELINE_VERSION.replace("tunelab-", "")} onder
-            MIT-licentie. De Build Guide combineert openbare gidsen en calculators
-            met lokale, versieerbare regels. Autospecifieke onderdelen en PI-kosten
-            moeten in FH6 worden gecontroleerd.
+            De Build Guide combineert openbare gidsen en calculators met lokale,
+            versieerbare regels. Autospecifieke onderdelen en PI-kosten moeten in
+            FH6 worden gecontroleerd.
           </p>
           <div className="install-panel">
             <Smartphone size={23} />

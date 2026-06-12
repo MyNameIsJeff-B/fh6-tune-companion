@@ -15,7 +15,9 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import {
   BUILD_CLASS_OPTIONS,
   CLASS_CAPS,
+  PR_STUNT_OPTIONS,
   applyBuildPlan,
+  configForPRStunt,
   defaultBuildConfig,
   defaultSelectedUpgrades,
   generateBuildPlan,
@@ -29,9 +31,11 @@ import {
 import type {
   BuildCarProfile,
   BuildFocus,
+  BuildGoal,
   BuildGuideConfig,
   BuildPriority,
   BuildUpgradeId,
+  PRStuntType,
 } from "../build-guide/types";
 import { TUNE_MODES } from "../domain/defaults";
 import { SEASONS, seasonProfile } from "../domain/seasons";
@@ -57,6 +61,11 @@ const focusOptions: Array<{ value: BuildFocus; label: string }> = [
   { value: "acceleration", label: "Acceleratie" },
   { value: "speed", label: "Topsnelheid" },
   { value: "control", label: "Controle" },
+];
+
+const goalOptions: Array<{ value: BuildGoal; label: string }> = [
+  { value: "standard", label: "Normale build" },
+  { value: "pr-stunt", label: "PR Stunt" },
 ];
 
 const capabilitySummary = (
@@ -125,6 +134,13 @@ export function BuildGuide({
 
   const changeConfig = (patch: Partial<BuildGuideConfig>) => {
     const nextConfig = { ...config, ...patch };
+    const nextPlan = generateBuildPlan(input, nextConfig, profile);
+    setConfig(nextConfig);
+    setSelected(defaultSelectedUpgrades(nextPlan));
+  };
+
+  const selectStunt = (type: PRStuntType) => {
+    const nextConfig = configForPRStunt(config, type);
     const nextPlan = generateBuildPlan(input, nextConfig, profile);
     setConfig(nextConfig);
     setSelected(defaultSelectedUpgrades(nextPlan));
@@ -227,6 +243,38 @@ export function BuildGuide({
             {profileError || "Generiek profiel actief; er is geen betrouwbare autospecifieke match gevonden."}
           </p>
         )}
+
+        <Segmented<BuildGoal>
+          label="Doel"
+          value={config.goal}
+          options={goalOptions}
+          onChange={(goal) => {
+            if (goal === "pr-stunt") {
+              selectStunt(config.prStuntType ?? "speed_trap");
+              return;
+            }
+            changeConfig({ goal: "standard", prStuntType: undefined });
+          }}
+        />
+
+        {config.goal === "pr-stunt" ? (
+          <div className="pr-stunt-picker">
+            <span className="field__label">PR Stunt-type</span>
+            <div className="pr-stunt-picker__options">
+              {PR_STUNT_OPTIONS.map((stunt) => (
+                <button
+                  type="button"
+                  className={config.prStuntType === stunt.id ? "is-active" : ""}
+                  key={stunt.id}
+                  onClick={() => selectStunt(stunt.id)}
+                >
+                  <strong>{stunt.label}</strong>
+                  <small>{stunt.sub}</small>
+                </button>
+              ))}
+            </div>
+          </div>
+        ) : null}
 
         <div className="field-grid">
           <Field label="Doelklasse">
@@ -358,6 +406,23 @@ export function BuildGuide({
           {seasonProfile(config.season).guidance}
         </span>
       </div>
+
+      {plan.stuntAdvice ? (
+        <article className="stunt-advice">
+          <div className="stunt-advice__heading">
+            <Gauge size={19} />
+            <span>
+              <strong>{plan.stuntAdvice.label}-recept</strong>
+              {plan.stuntAdvice.summary}
+            </span>
+          </div>
+          <ol>
+            {plan.stuntAdvice.techniqueTips.map((tip) => (
+              <li key={tip}>{tip}</li>
+            ))}
+          </ol>
+        </article>
+      ) : null}
 
       <div
         className="build-alerts"

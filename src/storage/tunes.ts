@@ -130,6 +130,13 @@ export function tuneAsText(result: TuneResult) {
       );
       lines.push("");
     });
+  if (result.techniqueTips?.length) {
+    lines.push("PR STUNT-TECHNIEK");
+    result.techniqueTips.forEach((tip, index) =>
+      lines.push(`${index + 1}. ${tip}`),
+    );
+    lines.push("");
+  }
   lines.push("Brake Balance: hogere % = meer front bias; 50% = gelijk.");
   if (result.testRun) {
     lines.push(

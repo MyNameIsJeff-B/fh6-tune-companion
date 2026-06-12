@@ -1,9 +1,9 @@
 # Build Guide Research
 
-Laatst gecontroleerd: 11 juni 2026
+Laatst gecontroleerd: 12 juni 2026
 
-Foundation-audit en de veilige research-backlog verwerkt in appversie `0.6.0`,
-tune-engine `fh6-companion-0.5.0` en Build Guide `build-guide-0.5.0`.
+PR Stunt-laag en de veilige research-backlog verwerkt in appversie `0.8.0`,
+tune-engine `fh6-companion-0.6.0` en Build Guide `build-guide-0.6.0`.
 
 ## Productbesluit
 
@@ -23,6 +23,18 @@ De uitvoerbare buildstappen volgen nu de gekozen discipline. Voor Race, Touge en
 All-round wordt de autospecifieke profielvolgorde vertaald naar de zes zichtbare
 stappen; Rally, Drag, Drift, Wangan en Rain hebben een disciplinevolgorde die
 voorrang krijgt op een mogelijk conflicterend autoprofiel.
+
+PR Stunt is een apart Build Guide-doel bovenop de acht bestaande tune-modi.
+De subtypekeuze bewaart daardoor oude tunes en imports:
+
+- Speed Trap gebruikt Wangan als basis met de nieuwe Speed-variant;
+- Speed Zone gebruikt Race met speed-bias en Aero Balance `0,40-0,45`;
+- Danger Sign gebruikt een Road/All-round-basis met de nieuwe Jump-variant;
+- Drift Zone gebruikt Drift plus een harde RWD- en assists-regel;
+- Trailblazer gebruikt Rally/Cross Country met Off-Road Tires en Suspension.
+
+Iedere subtype-uitvoer bevat techniekadvies. De app importeert bewust geen
+database met alle 111 locaties of stertargets.
 
 Seizoen is een aparte context naast ondergrond. FH6 bevestigt Spring, Summer,
 Autumn en Winter, met hete zomers, sneeuwrijke winters en een speelwereld die per
@@ -105,6 +117,18 @@ expliciete waarschuwing.
 
 ### Open community
 
+- BossDown PR Stunt-gidsen onderbouwen de techniek per subtype: lange run-up en
+  drafting voor Speed Traps, een rechte ramp-hit voor Danger Signs, assists uit
+  voor Drift Zones en lijnkeuze door terrein voor Trailblazers.
+- gamingpromax bevestigt dat stuntdisciplines om dedicated buildarchetypes vragen
+  en dat een goede race-auto niet automatisch een goede stunt-auto is.
+- games.gg is alleen gebruikt voor het bereik van Danger Sign-targets en de rol
+  van launch speed; de locatiedatabase is niet overgenomen.
+- ForzaFire aero-richting ondersteunt minimum downforce voor top speed en het
+  vermijden van nutteloze race-aero op jumps en ruig Cross Country-terrein.
+- fh6wiki ondersteunt voor landingsproblemen de volgorde: eerst bump verzachten,
+  daarna rebound licht verlagen.
+- Game8 ondersteunt onafhankelijk een Aero Balance-startpunt rond `0,45`.
 - [OPTN Club](https://github.com/OPTN-Club/optn.club) is gebruikt als referentie
   voor open, controleerbare build- en tunegegevens. Een afzonderlijke FH6-guide
   is nog niet rechtstreeks opgehaald en blijft daarom een onderhoudspunt.
@@ -168,6 +192,10 @@ expliciete waarschuwing.
     in-game verificatiedoel, zonder onbevestigde aero-sliderwaarden te verzinnen.
 18. Behandel widebody, drivetrain-, engine- en EV-swaps als expliciete
     trade-offs in gewicht, drag, PI, balans en opnieuw afstellen.
+19. Behandel PR Stunts als subtype-modifiers: minimum Aero en lange gearing voor
+    Speed Trap; Race-grip met speed-bias voor Speed Zone; zachtere landing en
+    extra ride height voor Danger Sign; RWD voor Drift Zone; Off-Road/AWD en
+    herstelacceleratie voor Trailblazer.
 
 ## Niet overgenomen
 
