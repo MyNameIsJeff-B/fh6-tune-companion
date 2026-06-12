@@ -12,6 +12,9 @@ Deze instructies gelden voor iedere agent die in deze repository werkt.
 - Herontwerp of versimpel de UI niet zonder expliciete toestemming van de gebruiker.
 - Nederlands is de hoofdtaal. Engelse FH6-termen mogen blijven waar ze invoer in
   de game herkenbaarder maken.
+- Schrijf uitleg en waarschuwingen in het Nederlands, maar behoud Engelse
+  game-termen zoals `tire pressure`, `rebound`, `Race Brakes`, `Final Drive`,
+  compoundnamen en season-namen.
 - De gebruiker wil dat technische stappen zoveel mogelijk door de agent worden
   uitgevoerd. Vraag alleen om handmatige actie als account-, browser- of
   permissie-interactie echt niet kan worden overgenomen.

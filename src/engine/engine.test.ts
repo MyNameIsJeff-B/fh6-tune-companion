@@ -3,6 +3,7 @@ import type { DriveType, TuneMode } from "../domain/types";
 import { calculateBaseline } from "./baseline";
 import { applyDiagnosis } from "./diagnosis";
 import { calculateImproved } from "./improved";
+import { tuneAsText } from "../storage/tunes";
 import {
   applyBuildPlan,
   defaultBuildConfig,
@@ -45,7 +46,115 @@ describe("tuning engine", () => {
           .find((section) => section.id === "tires")
           ?.values.find((value) => value.key === "pressure-front")?.value,
       );
-    expect(pressure(summer) - pressure(winter)).toBeCloseTo(0.1, 2);
+    expect(pressure(summer) - pressure(winter)).toBeCloseTo(0.15, 2);
+    expect(pressure(summer)).toBeCloseTo(2, 2);
+    expect(pressure(winter)).toBeCloseTo(1.85, 2);
+    expect(
+      calculateImproved({ ...DEFAULT_INPUT, season: "Winter" }).warnings.some(
+        (warning) => warning.includes("langere braking distances"),
+      ),
+    ).toBe(true);
+  });
+
+  it("keeps road bump at or below 55% of rebound", () => {
+    const roadModes = ["Race", "Touge", "Wangan", "General", "Rain"] satisfies TuneMode[];
+    roadModes.forEach((tuneMode) => {
+      const result = calculateImproved({
+        ...DEFAULT_INPUT,
+        tuneMode,
+        surface: "Road",
+      });
+      const damping = result.sections.find((section) => section.id === "damping");
+      const rebound = Number(
+        damping?.values.find((value) => value.key === "rebound-front")?.value,
+      );
+      const bump = Number(
+        damping?.values.find((value) => value.key === "bump-front")?.value,
+      );
+      expect(bump / rebound).toBeLessThanOrEqual(0.55);
+    });
+  });
+
+  it("keeps Horizon road toe neutral and does not change it for stability feel", () => {
+    const result = calculateImproved({
+      ...DEFAULT_INPUT,
+      feelStability: 90,
+      surface: "Road",
+    });
+    const alignment = result.sections.find((section) => section.id === "alignment");
+    expect(
+      alignment?.values.find((value) => value.key === "toe-front")?.value,
+    ).toBe(0);
+    expect(
+      alignment?.values.find((value) => value.key === "toe-rear")?.value,
+    ).toBe(0);
+    expect(
+      result.warnings.some((warning) => warning.includes("rear toe-in richting")),
+    ).toBe(true);
+  });
+
+  it("uses a 3% limiter margin for advanced Final Drive", () => {
+    const input = {
+      ...DEFAULT_INPUT,
+      inputMode: "advanced" as const,
+      includeGearing: true,
+      redlineRpm: 7800,
+      topSpeed: 265,
+      tireRear: "255/40R17",
+    };
+    const result = calculateImproved(input);
+    const gearing = result.sections.find((section) => section.id === "gearing");
+    const finalDrive = Number(
+      gearing?.values.find((value) => value.key === "final-drive")?.value,
+    );
+    const topGear = Number(
+      gearing?.values.find((value) => value.key === `gear-${input.gears}`)?.value,
+    );
+    const radiusM = (17 * 25.4 * 0.5 + 255 * 0.4) / 1000;
+    const circumference = 2 * Math.PI * radiusM;
+    const reachedRpm =
+      (input.topSpeed * 60 * finalDrive * topGear) /
+      (circumference * 3.6);
+    expect(reachedRpm).toBeLessThan(input.redlineRpm);
+    expect(reachedRpm / input.redlineRpm).toBeCloseTo(0.97, 2);
+    expect(
+      result.corrections.some((correction) => correction.includes("3% RPM-marge")),
+    ).toBe(true);
+  });
+
+  it("keeps Brake Balance direction explicit in values and share text", () => {
+    const rearHeavy = calculateImproved({
+      ...DEFAULT_INPUT,
+      frontWeightPercent: 45,
+    });
+    const frontHeavy = calculateImproved({
+      ...DEFAULT_INPUT,
+      frontWeightPercent: 60,
+    });
+    const balance = (result: ReturnType<typeof calculateImproved>) =>
+      result.sections
+        .find((section) => section.id === "brakes")
+        ?.values.find((value) => value.key === "brake-balance");
+    expect(Number(balance(frontHeavy)?.value)).toBeGreaterThan(
+      Number(balance(rearHeavy)?.value),
+    );
+    expect(balance(frontHeavy)?.unit).toBe("% voor");
+    expect(tuneAsText(frontHeavy)).toContain(
+      "Brake Balance: hogere % = meer front bias; 50% = gelijk.",
+    );
+  });
+
+  it("keeps known user-facing explanations in Dutch", () => {
+    const result = calculateImproved({
+      ...DEFAULT_INPUT,
+      season: "Winter",
+      tireCompound: "Snow",
+    });
+    const text = [...result.corrections, ...result.warnings].join(" ");
+    expect(text).not.toContain("Summer baseline uses");
+    expect(text).not.toContain("Winter baseline uses");
+    expect(text).not.toContain("Snow Tires are only appropriate");
+    expect(text).not.toContain("This seasonal build prioritises");
   });
 
   it("never exposes unavailable settings", () => {
@@ -193,16 +302,165 @@ describe("tuning engine", () => {
     expect(
       advanced.sections.find((item) => item.id === "gearing")?.values.length,
     ).toBeGreaterThan(1);
-    expect(advanced.engineVersion).toBe("fh6-companion-0.3.1");
+    expect(advanced.engineVersion).toBe("fh6-companion-0.5.0");
+  });
+
+  it("keeps Rally pressure separate from the low-pressure Off-Road band", () => {
+    const rally = calculateImproved({
+      ...DEFAULT_INPUT,
+      tuneMode: "Rally",
+      surface: "Dirt",
+      tireCompound: "Rally",
+    });
+    const offroad = calculateImproved({
+      ...DEFAULT_INPUT,
+      tuneMode: "Rally",
+      surface: "Dirt",
+      tireCompound: "Off-Road",
+    });
+    const pressure = (result: ReturnType<typeof calculateImproved>) =>
+      Number(
+        result.sections
+          .find((section) => section.id === "tires")
+          ?.values.find((value) => value.key === "pressure-front")?.value,
+      );
+    expect(pressure(rally)).toBeGreaterThan(pressure(offroad));
+    expect(pressure(offroad)).toBe(1.25);
+    expect(
+      rally.corrections.some((correction) =>
+        correction.includes("Street-pressure band"),
+      ),
+    ).toBe(true);
+  });
+
+  it("uses compound-aware road camber", () => {
+    const sport = calculateImproved({
+      ...DEFAULT_INPUT,
+      tireCompound: "Sport",
+    });
+    const slick = calculateImproved({
+      ...DEFAULT_INPUT,
+      tireCompound: "Race Slick",
+    });
+    const frontCamber = (result: ReturnType<typeof calculateImproved>) =>
+      Number(
+        result.sections
+          .find((section) => section.id === "alignment")
+          ?.values.find((value) => value.key === "camber-front")?.value,
+      );
+    expect(frontCamber(sport)).toBe(-1.2);
+    expect(frontCamber(slick)).toBe(-1.8);
+  });
+
+  it("filters Sport Differential output to acceleration sliders", () => {
+    const result = calculateImproved({
+      ...DEFAULT_INPUT,
+      driveType: "AWD",
+      capabilities: {
+        ...DEFAULT_INPUT.capabilities,
+        differential: "accel",
+      },
+    });
+    const keys = result.sections
+      .find((section) => section.id === "differential")
+      ?.values.map((value) => value.key);
+    expect(keys).toEqual(["diff-front-accel", "diff-rear-accel"]);
+  });
+
+  it("keeps legacy boolean differential capabilities compatible", () => {
+    const available = calculateImproved({
+      ...DEFAULT_INPUT,
+      capabilities: {
+        ...DEFAULT_INPUT.capabilities,
+        differential: true,
+      },
+    });
+    const unavailable = calculateImproved({
+      ...DEFAULT_INPUT,
+      capabilities: {
+        ...DEFAULT_INPUT.capabilities,
+        differential: false,
+      },
+    });
+    expect(
+      available.sections.find((section) => section.id === "differential")
+        ?.available,
+    ).toBe(true);
+    expect(
+      unavailable.sections.find((section) => section.id === "differential")
+        ?.available,
+    ).toBe(false);
+  });
+
+  it("suppresses combustion gearing math for an EV with one gear", () => {
+    const result = calculateImproved({
+      ...DEFAULT_INPUT,
+      ev: true,
+      inputMode: "advanced",
+      gears: 1,
+      includeGearing: true,
+    });
+    expect(
+      result.sections.find((section) => section.id === "gearing")?.values,
+    ).toHaveLength(0);
+    expect(
+      result.warnings.some((warning) => warning.includes("EV/1-speed gearing")),
+    ).toBe(true);
+  });
+
+  it("adds Aero Balance and discipline-specific guidance", () => {
+    const wangan = calculateImproved({
+      ...DEFAULT_INPUT,
+      tuneMode: "Wangan",
+      hasAero: true,
+      capabilities: {
+        ...DEFAULT_INPUT.capabilities,
+        aero: true,
+      },
+    });
+    expect(
+      wangan.sections.find((section) => section.id === "aero")?.tip,
+    ).toContain("0,40-0,45");
+    expect(
+      wangan.warnings.some((warning) => warning.includes("Wangan gebruikt")),
+    ).toBe(true);
+
+    const touge = calculateImproved({
+      ...DEFAULT_INPUT,
+      tuneMode: "Touge",
+      driveType: "RWD",
+    });
+    const diff = touge.sections.find((section) => section.id === "differential");
+    expect(
+      diff?.values.find((value) => value.key === "diff-rear-accel")?.value,
+    ).toBe(60);
+    expect(
+      diff?.values.find((value) => value.key === "diff-rear-decel")?.value,
+    ).toBe(30);
   });
 
   it("creates an immutable diagnosis revision", () => {
     const original = calculateImproved(DEFAULT_INPUT);
-    const revised = applyDiagnosis(original, "power-oversteer");
+    const revised = applyDiagnosis(original, "power-oversteer", {
+      location: "  Horizon Mexico Circuit  ",
+      cleanLaps: 2.6,
+      inputDevice: "Controller",
+      assists: "ABS",
+      notes: "  Uitkomen bocht 7 blijft onrustig.  ",
+    });
     expect(revised.parentRevisionId).toBe(original.id);
     expect(revised.id).not.toBe(original.id);
     expect(original.revisionReason).toBeUndefined();
+    expect(original.testRun).toBeUndefined();
     expect(revised.revisionReason).toBe("Power-overstuur");
+    expect(revised.testRun).toMatchObject({
+      location: "Horizon Mexico Circuit",
+      cleanLaps: 3,
+      inputDevice: "Controller",
+      assists: "ABS",
+      notes: "Uitkomen bocht 7 blijft onrustig.",
+    });
+    expect(revised.testRun?.observedAt).toBeTruthy();
     const differential = revised.sections.find(
       (item) => item.id === "differential",
     );
@@ -210,15 +468,42 @@ describe("tuning engine", () => {
       (item) => item.key === "diff-rear-accel",
     )?.value;
     expect(differential?.summary).toBe(`${rearAccel}% accel`);
-    expect(revised.sections.find((item) => item.id === "damping")?.summary).toContain(
-      "5.46/4.96",
-    );
+    const damping = revised.sections.find((item) => item.id === "damping");
+    const bumpFront = damping?.values.find(
+      (item) => item.key === "bump-front",
+    )?.value;
+    const bumpRear = damping?.values.find(
+      (item) => item.key === "bump-rear",
+    )?.value;
+    expect(damping?.summary).toContain(`B ${bumpFront}/${bumpRear}`);
   });
 
   it("lowers confidence when core data is missing", () => {
     const result = calculateImproved({ ...DEFAULT_INPUT, weight: 0 });
     expect(result.warnings.some((warning) => warning.includes("Gewicht"))).toBe(true);
+    expect(
+      result.warnings.some((warning) => warning.includes("demping")),
+    ).toBe(false);
+    expect(
+      result.sections
+        .find((section) => section.id === "differential")
+        ?.values.every((value) => value.confidence === 0.25),
+    ).toBe(true);
     expect(result.confidence).toBeLessThan(0.8);
+  });
+
+  it("adds the low-pressure meta note without changing road pressure values", () => {
+    const baseline = calculateBaseline(DEFAULT_INPUT);
+    const improved = calculateImproved(DEFAULT_INPUT);
+    const pressures = (result: ReturnType<typeof calculateBaseline>) =>
+      result.sections
+        .find((section) => section.id === "tires")
+        ?.values.filter((value) => value.key.startsWith("pressure-"))
+        .map((value) => value.value);
+    expect(pressures(improved)).toEqual(pressures(baseline));
+    expect(
+      improved.warnings.some((warning) => warning.includes("circa 1,1 bar")),
+    ).toBe(true);
   });
 
   it("carries Build Guide uncertainty into the visible tune", () => {

@@ -1,4 +1,9 @@
-import type { DiagnosisId, TuneResult, TuneValue } from "../domain/types";
+import type {
+  DiagnosisId,
+  TestRunContext,
+  TuneResult,
+  TuneValue,
+} from "../domain/types";
 import { refreshSectionSummaries } from "./summaries";
 
 export const DIAGNOSES: Array<{
@@ -38,12 +43,25 @@ const firstExisting = (result: TuneResult, keys: string[]): TuneValue | undefine
     )
     .find(Boolean);
 
-export function applyDiagnosis(result: TuneResult, id: DiagnosisId): TuneResult {
+export function applyDiagnosis(
+  result: TuneResult,
+  id: DiagnosisId,
+  testRun?: Omit<TestRunContext, "observedAt">,
+): TuneResult {
   const next = structuredClone(result);
   next.id = crypto.randomUUID();
   next.parentRevisionId = result.id;
   next.createdAt = new Date().toISOString();
   next.revisionReason = DIAGNOSES.find((item) => item.id === id)?.label ?? id;
+  next.testRun = testRun
+    ? {
+        ...testRun,
+        location: testRun.location.trim(),
+        notes: testRun.notes?.trim() || undefined,
+        cleanLaps: Math.max(1, Math.round(testRun.cleanLaps)),
+        observedAt: new Date().toISOString(),
+      }
+    : undefined;
 
   switch (id) {
     case "entry-understeer":

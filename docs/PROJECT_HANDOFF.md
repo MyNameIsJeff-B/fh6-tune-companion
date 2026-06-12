@@ -4,10 +4,10 @@ Laatst bijgewerkt: 11 juni 2026
 
 ## Huidige status
 
-FH6 Tune Companion `0.4.1` is een werkende mobiele PWA met:
+FH6 Tune Companion `0.7.0` is een werkende mobiele PWA met:
 
 - auto zoeken of handmatig invoeren;
-- Engelstalige Build Guide met per-auto profiel, discipline, ondergrond,
+- Nederlandstalige Build Guide met per-auto profiel, discipline, ondergrond,
   aandrijving, klasse en focus;
 - 618 reproduceerbaar gegenereerde buildprofielen met upgradevolgorde en
   vermijd-lijst;
@@ -15,7 +15,8 @@ FH6 Tune Companion `0.4.1` is een werkende mobiele PWA met:
 - actuele `R`-topklasse met migratie van oude opgeslagen `X`-builds;
 - afzonderlijke Rally Tires voor Dirt en Off-Road Tires voor Cross Country;
 - seizoenskeuze voor Spring, Summer, Autumn en Winter, los van de route-ondergrond;
-- conservatieve zomer-/wintercorrectie op bandenstartdruk en seizoenswaarschuwingen;
+- `+0,05 bar` Summer- en `-0,10 bar` Winter-correctie op tire pressure, met
+  koud-asfaltwaarschuwingen;
 - Quick en Advanced invoer;
 - acht tune-modi;
 - verbeterd advies plus optionele TuneLab-vergelijking;
@@ -28,6 +29,31 @@ FH6 Tune Companion `0.4.1` is een werkende mobiele PWA met:
 - ARB-startwaarden binnen conservatieve FH6-bereiken voor normale wegmodi;
 - per-auto opgeslagen veer-slidergrenzen en percentageadvies zonder schijnwaarde;
 - gearing alleen vanuit bevestigde Advanced-invoer.
+- `3%` RPM-marge onder de limiter voor Final Drive;
+- neutrale `0,0°` road toe als FH6-default;
+- bump op maximaal `50%` van rebound voor normale road modes;
+- Race Brakes vanaf A-class voor Road-builds;
+- klassesprongwaarschuwing bij minimaal twee klassen boven native;
+- expliciete Brake Balance-richting in gedeelde tunes.
+- Sport Differential met acceleration-only output en volledige
+  Race/Rally/Off-Road/Drift Differential-capabilities;
+- Rally- en Off-Road-compounds met verschillende pressure-banden;
+- compound-aware road camber en Aero Balance-doel `0,40-0,45`;
+- Touge-, Wangan-, Drag-, AWD- en Drift-specifieke waarschuwingen;
+- widebody-, drivetrain-, engine- en EV-swaptrade-offs;
+- EV/1-speed bescherming tegen ongeldige combustion gearing;
+- Rally compound als gelabeld Road-alternatief en extra front tire width-prioriteit
+  voor geschikte RWD A/S1-builds;
+- zichtbare aankoop- en onzekerheidswaarschuwingen vóór de upgradekeuze;
+- directe samenvatting van de tuningtoegang van geselecteerde onderdelen;
+- exclusieve keuze tussen Sport en volledige Differential-tier, ook in handmatige
+  invoer;
+- verplichte testlocatie plus optionele testritcontext bij diagnose: schone ronden,
+  besturing, assists en notities;
+- teruglaadbare tunegeschiedenis per auto en discipline, inclusief de basisrevisie;
+- volledige garage-export als één herimporteerbaar JSON-bestand.
+- browsergestuurde PWA-installknop waar ondersteund, met concrete iOS- en
+  Android-instructies als fallback.
 
 Live:
 <https://mynameisjeff-b.github.io/fh6-tune-companion/>
@@ -39,10 +65,10 @@ Repository:
 
 | Onderdeel | Versie |
 | --- | --- |
-| App | `0.4.1` |
-| Eigen tune-engine | `fh6-companion-0.3.1` |
+| App | `0.7.0` |
+| Eigen tune-engine | `fh6-companion-0.5.0` |
 | TuneLab-baseline | `tunelab-1.7.0` |
-| Build Guide | `build-guide-0.3.1` |
+| Build Guide | `build-guide-0.5.0` |
 | Catalogus | `tunelab-v7+fh6-local-2026-06-10` |
 | Lokale opslag | `fh6-tune-companion:v1:tunes` |
 
@@ -99,6 +125,10 @@ Guide staan daar los van. Zie `licenses/TUNELAB-MIT.txt` en
   gecontroleerd.
 - Het verbeterde model is technisch en scenario-matig getest, maar nog niet breed
   gevalideerd met echte FH6-ritten.
+- Damping is nog niet gewichtsgeleid en de huidige road spring-percentages zijn
+  nog niet via telemetry gevalideerd. Dit zijn de eerstvolgende fundamentele fixes.
+- De PI-class caps en precieze R-class-definitie spreken in openbare bronnen
+  elkaar tegen en wachten op één in-game verificatie.
 - Er is geen account, synchronisatie tussen apparaten of backend.
 - Tunes op de desktop en telefoon zijn daarom aparte lokale collecties; JSON is de
   huidige overdrachtsmethode.
@@ -128,10 +158,10 @@ Herstel vanaf cache `fh6-tune-v6`:
 
 ## Laatst uitgevoerde kwaliteitscontrole
 
-Op 11 juni 2026 voor Build Guide `0.3.1`:
+Op 11 juni 2026 voor Build Guide `0.5.0`:
 
 - ESLint schoon.
-- 56 Vitest-tests geslaagd in de gezonde tijdelijke runtime.
+- 77 Vitest-tests geslaagd in de gezonde tijdelijke runtime.
 - Pages-productiebuild geslaagd.
 - `R`-klasse, oude `X`-migratie, profielvolgorde en Cross Country-banden zijn
   afgedekt met regressietests.
@@ -144,7 +174,8 @@ Op 11 juni 2026 voor Build Guide `0.3.1`:
 - Geen horizontale overflow op 320 px en geen consolefouten.
 - Gecontroleerde flow: 1992 Mazda RX-7 Type R toont het juiste profiel; wijziging
   naar Rally + Mixed houdt de gebruikerskeuze leidend en toont Rally suspension.
-- Engelse bronkaarten, confidence-labels en FH6-onderdeelnamen gecontroleerd.
+- Bronkaarten, Nederlandse confidence-labels en Engelse FH6-onderdeelnamen
+  gecontroleerd.
 - Service-worker cache `fh6-tune-v8` laadt de app, autodatabase en het RX-7-profiel
   na een volledig offline herladen.
 - Golden tests dekken lichte RWD, zware AWD en voor-zware FWD ARB-bereiken.
@@ -163,6 +194,44 @@ Op 11 juni 2026 voor Build Guide `0.3.1`:
 - De echte live URL is getest op 390 x 844: gewijzigde invoerflow, autodatabase,
   lokale fonts, assets, service worker en console zijn in orde.
 - Na een eerste online bezoek herlaadt de live app met autodatabase ook offline.
+- De uitgebreide research-backlog en Build Guide-UI hebben 77 groene Vitest-tests,
+  schone ESLint en
+  een geslaagde Pages-build in de gezonde tijdelijke runtime.
+- De componenttest dekt zichtbare waarschuwingen, capability-labels en exclusieve
+  Sport/Race Differential-selectie.
+- Er is voor deze laatste UI-ronde geen nieuwe visuele browser-QA uitgevoerd,
+  omdat de ingebouwde Codex-browser nog steeds faalt met de bekende Windows
+  `CreateProcessWithLogonW`-fout.
+- Service-workercache `fh6-tune-v10` forceert een atomaire update naar app `0.7.0`.
+- De diagnoseflow bewaart vanaf `0.7.0` de voorgaande revisie, koppelt testcontext
+  aan de nieuwe revisie en toont de volledige keten terug in de app.
+- De volledige garage kan vanaf `0.7.0` als één JSON-bestand worden geëxporteerd
+  en via de bestaande import worden hersteld.
+- 82 Vitest-tests zijn groen, inclusief React-interactietests van handmatige invoer
+  via diagnose naar een geschiedenis met twee revisies en van de mobiele
+  installatie-instructies.
+- De in-app Browser kon op 12 juni 2026 opnieuw niet starten door dezelfde Windows
+  `CreateProcessWithLogonW`-fout; er is geen externe browserfallback gebruikt.
+
+### Foundation Fix Sprint A
+
+Op 11 juni 2026 zijn audititems A3-A6, B1-B5, C3, C5, C6 en C8 verwerkt:
+
+- 65 Vitest-tests geslaagd in `C:\tmp\fh6-tune-runtime`;
+- ESLint schoon;
+- Pages-productiebuild geslaagd;
+- TuneLab-baseline blijft apart; de FH6-correcties staan in `improved.ts`;
+- de in-app Browser-runtime startte niet door de bekende Windows
+  `CreateProcessWithLogonW`-fout, waardoor geautomatiseerde render-QA lokaal niet
+  opnieuw kon worden uitgevoerd.
+
+Wacht nog op Jeffs in-game of telemetry-validatie:
+
+- gewichtsgeleide damping (A1);
+- lagere, gewichtsgeleide spring targets (A2);
+- volledige numerieke Drift- en Drag-suspension/brake-branchcorrecties;
+- promotie van Mechanical/Aero Balance van verificatietip naar rekenregel;
+- PI-class caps, R-class-definitie en rear toe-in sign voor diagnose.
 
 ## Eerstvolgende productstap
 
@@ -196,10 +265,8 @@ Zet bewezen correcties daarna om in:
 
 ### P1 - Dagelijks gebruik
 
-- Voeg testritnotities en rondesfeedback per revisie toe.
-- Voeg een duidelijke tunegeschiedenis per auto toe.
-- Maak export/import van de volledige garage mogelijk.
-- Voeg een installatiewenk toe voor iOS en Android.
+De oorspronkelijke P1-items voor testritcontext, geschiedenis, garage-export en
+mobiele installatiehulp zijn in app `0.7.0` verwerkt.
 
 ### P2 - Betere builddata
 

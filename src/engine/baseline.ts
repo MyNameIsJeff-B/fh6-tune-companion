@@ -232,9 +232,9 @@ export function calculateBaseline(input: TuneInput): TuneResult {
     pressureFront -= metric ? 0.1 : 1.5;
     pressureRear -= metric ? 0.1 : 1.5;
   }
-  if (["Rally", "Off-Road"].includes(input.tireCompound)) {
-    pressureFront -= metric ? 0.15 : 2;
-    pressureRear -= metric ? 0.15 : 2;
+  if (input.tireCompound === "Off-Road") {
+    pressureFront -= metric ? 0.4 : 5.8;
+    pressureRear -= metric ? 0.4 : 5.8;
   }
   if (input.tireCompound === "Snow") {
     pressureFront -= metric ? 0.2 : 3;
@@ -248,8 +248,8 @@ export function calculateBaseline(input: TuneInput): TuneResult {
           : 0.7
         : input.season === "Winter"
           ? metric
-            ? -0.05
-            : -0.7
+            ? -0.1
+            : -1.5
           : 0;
     pressureFront += seasonalDelta;
     pressureRear += seasonalDelta;
@@ -288,7 +288,8 @@ export function calculateBaseline(input: TuneInput): TuneResult {
     input.inputMode === "advanced" &&
     input.includeGearing &&
     input.redlineRpm > 0 &&
-    input.topSpeed > 0
+    input.topSpeed > 0 &&
+    input.gears > 1
   ) {
     const tire = parseTire(input.tireRear);
     const topKmh = speedKmh;
@@ -328,7 +329,7 @@ export function calculateBaseline(input: TuneInput): TuneResult {
     section(
       "gearing",
       gearingValues,
-      "Stem de hoogste versnelling af op de langste rechte lijn.",
+      "Stem de hoogste versnelling af op de langste rechte lijn; de berekening houdt 3% marge onder de limiter.",
       gearingValues.length ? `FD ${gearingValues[0].value}` : "Niet berekend",
     ),
     section(
@@ -340,7 +341,7 @@ export function calculateBaseline(input: TuneInput): TuneResult {
         value("toe-rear", "Toe achter", round(toeRear), "°"),
         value("caster", "Caster", caster, "°"),
       ],
-      "Verander camber in stappen van 0,2°. Gebruik toe pas als fijncorrectie.",
+      "Verander camber in stappen van 0,2°. Houd toe standaard op 0,0°; gebruik caster voordat front camber verder dan -2,0° gaat.",
       `${round(camberFront)}° / ${round(camberRear)}°`,
     ),
     section(
@@ -349,7 +350,7 @@ export function calculateBaseline(input: TuneInput): TuneResult {
         value("arb-front", "Voor", arbFront),
         value("arb-rear", "Achter", arbRear),
       ],
-      "Onderstuur: voorzijde zachter. Instabiele achterkant: achterzijde zachter.",
+      "Onderstuur: voorzijde zachter. Instabiele achterkant: achterzijde zachter. Controleer in FH6 of Mechanical Balance binnen 0,55-0,65 blijft.",
       `${arbFront} / ${arbRear}`,
     ),
     section(

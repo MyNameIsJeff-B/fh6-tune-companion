@@ -5,10 +5,12 @@ import {
   Check,
   Download,
   Gauge,
+  History,
   Menu,
   RotateCcw,
   Share2,
   SlidersHorizontal,
+  Smartphone,
   Stethoscope,
   Trash2,
   Upload,
@@ -32,10 +34,13 @@ import { SEASONS } from "./domain/seasons";
 import packageJson from "../package.json";
 import type {
   Capability,
+  AssistPreset,
   CarRecord,
   DiagnosisId,
   DriveType,
+  InputDevice,
   InputMode,
+  TestRunContext,
   TuneInput,
   TuneResult,
   UnitSystem,
@@ -49,10 +54,12 @@ import {
 } from "./storage/carOverrides";
 import {
   deleteTune,
+  exportGarage,
   exportTune,
   importTunes,
   loadSavedTunes,
   saveTune,
+  tuneHistoryFor,
   tuneAsText,
 } from "./storage/tunes";
 
@@ -98,6 +105,11 @@ const classForPi = (pi: number) => {
   return "R";
 };
 
+interface BeforeInstallPromptEvent extends Event {
+  prompt: () => Promise<void>;
+  userChoice: Promise<{ outcome: "accepted" | "dismissed" }>;
+}
+
 const convertInputUnits = (input: TuneInput, next: UnitSystem): TuneInput => {
   if (input.unitSystem === next) return input;
   return {
@@ -137,9 +149,20 @@ function App() {
   const [showBaseline, setShowBaseline] = useState(false);
   const [saved, setSaved] = useState<TuneResult[]>(loadSavedTunes);
   const [modal, setModal] = useState<
-    "diagnosis" | "garage" | "compare" | "menu" | null
+    "diagnosis" | "garage" | "history" | "compare" | "menu" | null
   >(null);
+  const [testRunDraft, setTestRunDraft] = useState<
+    Omit<TestRunContext, "observedAt">
+  >({
+    location: "",
+    cleanLaps: 3,
+    inputDevice: "Controller",
+    assists: "ABS",
+    notes: "",
+  });
   const [notice, setNotice] = useState("");
+  const [installPrompt, setInstallPrompt] =
+    useState<BeforeInstallPromptEvent | null>(null);
   const importRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -151,6 +174,20 @@ function App() {
     const timeout = window.setTimeout(() => setNotice(""), 2800);
     return () => window.clearTimeout(timeout);
   }, [notice]);
+
+  useEffect(() => {
+    const captureInstallPrompt = (event: Event) => {
+      event.preventDefault();
+      setInstallPrompt(event as BeforeInstallPromptEvent);
+    };
+    const clearInstallPrompt = () => setInstallPrompt(null);
+    window.addEventListener("beforeinstallprompt", captureInstallPrompt);
+    window.addEventListener("appinstalled", clearInstallPrompt);
+    return () => {
+      window.removeEventListener("beforeinstallprompt", captureInstallPrompt);
+      window.removeEventListener("appinstalled", clearInstallPrompt);
+    };
+  }, []);
 
   const matches = useMemo(() => {
     const query = carSearch.toLowerCase().trim();
@@ -202,6 +239,7 @@ function App() {
             : Math.round(weightKg * 2.205)
           : current.weight,
       frontWeightPercent: car.frontWeight || current.frontWeightPercent,
+      ev: car.ev,
       hasAero: false,
       includeGearing: true,
       capabilities: { ...ALL_CAPABILITIES },
@@ -218,8 +256,9 @@ function App() {
       ...input,
       maxTorque: input.inputMode === "quick" ? (input.unitSystem === "metric" ? 500 : 369) : input.maxTorque,
       topSpeed: input.inputMode === "quick" ? (input.unitSystem === "metric" ? 240 : 149) : input.topSpeed,
-      gears: input.inputMode === "quick" ? 6 : input.gears,
+      gears: input.inputMode === "quick" ? (input.ev ? 1 : 6) : input.gears,
       includeGearing:
+        !input.ev &&
         input.inputMode === "advanced" &&
         input.includeGearing &&
         input.capabilities.gearing !== "none",
@@ -251,6 +290,16 @@ function App() {
     }
   };
 
+  const installApp = async () => {
+    if (!installPrompt) return;
+    await installPrompt.prompt();
+    const choice = await installPrompt.userChoice;
+    if (choice.outcome === "accepted") {
+      setInstallPrompt(null);
+      setNotice("App wordt geïnstalleerd");
+    }
+  };
+
   const handleImport = async (file?: File) => {
     if (!file) return;
     try {
@@ -264,14 +313,40 @@ function App() {
 
   const applyFeedback = (id: DiagnosisId) => {
     if (!result) return;
-    const revised = applyDiagnosis(result, id);
+    if (!testRunDraft.location.trim()) {
+      setNotice("Vul eerst de testlocatie in");
+      return;
+    }
+    const revised = applyDiagnosis(result, id, testRunDraft);
+    saveTune(result);
     setResult(revised);
     setSaved(saveTune(revised));
+    setTestRunDraft((current) => ({ ...current, notes: "" }));
     setModal(null);
     setNotice("Bijstelling als nieuwe revisie opgeslagen");
   };
 
   const displayResult = showBaseline ? baseline : result;
+  const tuneHistory = useMemo(
+    () => (result ? tuneHistoryFor(saved, result) : []),
+    [result, saved],
+  );
+
+  const loadTune = (item: TuneResult) => {
+    const springSliderRange =
+      item.input.springSliderRange ??
+      loadSpringSliderRange(
+        item.input.year,
+        item.input.make,
+        item.input.model,
+      );
+    setInput({ ...item.input, springSliderRange });
+    setResult(item);
+    setBaseline(calculateBaseline({ ...item.input, springSliderRange }));
+    setShowBaseline(false);
+    setStep(3);
+    setModal(null);
+  };
 
   return (
     <div className="app-shell">
@@ -280,6 +355,7 @@ function App() {
         <button
           type="button"
           className="icon-button"
+          aria-label={step > 0 ? "Vorige stap" : "Menu openen"}
           onClick={() => (step > 0 ? setStep(step - 1) : setModal("menu"))}
         >
           {step > 0 ? <ArrowLeft /> : <Menu />}
@@ -300,7 +376,12 @@ function App() {
             <small>Offline · build-aware · persoonlijk</small>
           )}
         </div>
-        <button type="button" className="icon-button" onClick={() => setModal("garage")}>
+        <button
+          type="button"
+          className="icon-button"
+          aria-label="Garage openen"
+          onClick={() => setModal("garage")}
+        >
           <Bookmark />
           {saved.length ? <i>{saved.length}</i> : null}
         </button>
@@ -583,6 +664,38 @@ function App() {
                     </label>
                   );
                 }
+                if (capability === "differential") {
+                  return (
+                    <label className="capability-row" key={capability}>
+                      <span>{capabilityLabels[capability]}</span>
+                      <select
+                        value={
+                          input.capabilities.differential === true
+                            ? "full"
+                            : input.capabilities.differential === false
+                              ? "none"
+                              : input.capabilities.differential
+                        }
+                        onChange={(event) =>
+                          setInput((current) => ({
+                            ...current,
+                            capabilities: {
+                              ...current.capabilities,
+                              differential: event.target.value as
+                                | "none"
+                                | "accel"
+                                | "full",
+                            },
+                          }))
+                        }
+                      >
+                        <option value="none">Niet verstelbaar</option>
+                        <option value="accel">Alleen acceleratie</option>
+                        <option value="full">Volledig</option>
+                      </select>
+                    </label>
+                  );
+                }
                 return (
                   <label className="capability-row" key={capability}>
                     <span>{capabilityLabels[capability]}</span>
@@ -723,7 +836,7 @@ function App() {
                   <Field label="Versnellingen">
                     <input
                       type="number"
-                      min="4"
+                      min={input.ev ? "1" : "4"}
                       max="10"
                       value={input.gears}
                       onChange={(event) => patch("gears", Number(event.target.value))}
@@ -847,6 +960,12 @@ function App() {
                   </strong>
                   {input.buildGuide.targetClass} {input.buildGuide.targetPi} ·{" "}
                   {input.buildGuide.selectedUpgradeIds.length} upgrades geselecteerd
+                  {" · Diff "}
+                  {input.capabilities.differential === true
+                    ? "full"
+                    : input.capabilities.differential === false
+                      ? "none"
+                      : input.capabilities.differential}
                   {input.buildGuide.valuesConfirmed
                     ? " · waarden gecontroleerd"
                     : " · waarden nog controleren"}
@@ -881,6 +1000,10 @@ function App() {
               </button>
             </div>
             <div className="share-actions">
+              <button type="button" onClick={() => setModal("history")}>
+                <History />
+                Historie ({tuneHistory.length})
+              </button>
               <button type="button" onClick={shareCurrent}>
                 <Share2 />
                 Delen
@@ -909,11 +1032,95 @@ function App() {
               <li>Pas één revisie toe en vergelijk opnieuw.</li>
             </ol>
           </div>
+          <div className="diagnosis-context">
+            <div className="diagnosis-context__heading">
+              <strong>Leg deze testrit vast</strong>
+              <small>Deze context wordt aan de nieuwe revisie gekoppeld.</small>
+            </div>
+            <Field label="Testlocatie">
+              <input
+                value={testRunDraft.location}
+                onChange={(event) =>
+                  setTestRunDraft((current) => ({
+                    ...current,
+                    location: event.target.value,
+                  }))
+                }
+                placeholder="Bijv. Horizon Mexico Circuit"
+              />
+            </Field>
+            <div className="field-grid diagnosis-context__grid">
+              <Field label="Schone ronden">
+                <input
+                  type="number"
+                  min="1"
+                  max="99"
+                  value={testRunDraft.cleanLaps}
+                  onChange={(event) =>
+                    setTestRunDraft((current) => ({
+                      ...current,
+                      cleanLaps: Math.max(1, Number(event.target.value)),
+                    }))
+                  }
+                />
+              </Field>
+              <Field label="Besturing">
+                <select
+                  value={testRunDraft.inputDevice}
+                  onChange={(event) =>
+                    setTestRunDraft((current) => ({
+                      ...current,
+                      inputDevice: event.target.value as InputDevice,
+                    }))
+                  }
+                >
+                  <option>Controller</option>
+                  <option>Wheel</option>
+                  <option>Keyboard</option>
+                </select>
+              </Field>
+              <Field label="Assists">
+                <select
+                  value={testRunDraft.assists}
+                  onChange={(event) =>
+                    setTestRunDraft((current) => ({
+                      ...current,
+                      assists: event.target.value as AssistPreset,
+                    }))
+                  }
+                >
+                  <option>Off</option>
+                  <option>ABS</option>
+                  <option>ABS + TCS</option>
+                  <option>Custom</option>
+                </select>
+              </Field>
+            </div>
+            <Field label="Testritnotitie">
+              <textarea
+                rows={3}
+                value={testRunDraft.notes}
+                onChange={(event) =>
+                  setTestRunDraft((current) => ({
+                    ...current,
+                    notes: event.target.value,
+                  }))
+                }
+                placeholder="Wat gebeurde er consequent, en in welke bochtfase?"
+              />
+            </Field>
+            {!testRunDraft.location.trim() ? (
+              <p className="diagnosis-context__required">
+                Vul een testlocatie in voordat je een revisie toepast.
+              </p>
+            ) : null}
+          </div>
           <div className="diagnosis-list">
             {DIAGNOSES.map((diagnosis) => (
               <button
                 type="button"
                 key={diagnosis.id}
+                disabled={!testRunDraft.location.trim()}
                 onClick={() => applyFeedback(diagnosis.id)}
               >
                 <span>{diagnosis.phase}</span>
@@ -949,6 +1156,14 @@ function App() {
               <Upload size={18} />
               Importeer JSON
             </button>
+            <button
+              type="button"
+              disabled={!saved.length}
+              onClick={() => exportGarage(saved)}
+            >
+              <Download size={18} />
+              Exporteer garage
+            </button>
             <input
               ref={importRef}
               type="file"
@@ -964,22 +1179,7 @@ function App() {
                   <button
                     type="button"
                     className="saved-list__load"
-                    onClick={() => {
-                      const springSliderRange =
-                        item.input.springSliderRange ??
-                        loadSpringSliderRange(
-                          item.input.year,
-                          item.input.make,
-                          item.input.model,
-                        );
-                      setInput({ ...item.input, springSliderRange });
-                      setResult(item);
-                      setBaseline(
-                        calculateBaseline({ ...item.input, springSliderRange }),
-                      );
-                      setStep(3);
-                      setModal(null);
-                    }}
+                    onClick={() => loadTune(item)}
                   >
                     <span>
                       {item.input.year} {item.input.make}
@@ -1006,6 +1206,51 @@ function App() {
         </Modal>
       ) : null}
 
+      {modal === "history" && result ? (
+        <Modal title="Tunegeschiedenis" onClose={() => setModal(null)} wide>
+          <div className="history-summary">
+            <History size={20} />
+            <span>
+              <strong>
+                {result.input.year} {result.input.make} {result.input.model}
+              </strong>
+              {result.input.tuneMode} · {tuneHistory.length} revisies
+            </span>
+          </div>
+          <div className="history-list">
+            {tuneHistory.map((item, index) => (
+              <button
+                type="button"
+                className={item.id === result.id ? "is-current" : ""}
+                key={item.id}
+                onClick={() => loadTune(item)}
+              >
+                <span className="history-list__index">
+                  {String(tuneHistory.length - index).padStart(2, "0")}
+                </span>
+                <span>
+                  <strong>{item.revisionReason ?? "Basisadvies"}</strong>
+                  <small>
+                    {item.input.carClass} {item.input.pi} ·{" "}
+                    {new Date(item.createdAt).toLocaleString("nl-NL")}
+                    {item.testRun
+                      ? ` · ${item.testRun.location} · ${item.testRun.cleanLaps} ronden`
+                      : ""}
+                  </small>
+                  {item.testRun ? (
+                    <em>
+                      {item.testRun.inputDevice} · assists {item.testRun.assists}
+                      {item.testRun.notes ? ` · ${item.testRun.notes}` : ""}
+                    </em>
+                  ) : null}
+                </span>
+                {item.id === result.id ? <b>Actief</b> : null}
+              </button>
+            ))}
+          </div>
+        </Modal>
+      ) : null}
+
       {modal === "menu" ? (
         <Modal title="Over deze app" onClose={() => setModal(null)}>
           <p className="modal-note">
@@ -1025,6 +1270,33 @@ function App() {
             met lokale, versieerbare regels. Autospecifieke onderdelen en PI-kosten
             moeten in FH6 worden gecontroleerd.
           </p>
+          <div className="install-panel">
+            <Smartphone size={23} />
+            <div>
+              <strong>Installeer op je telefoon</strong>
+              {installPrompt ? (
+                <>
+                  <p>
+                    Deze browser kan de Tune Companion direct als app installeren.
+                  </p>
+                  <button type="button" onClick={installApp}>
+                    Installeer app
+                  </button>
+                </>
+              ) : (
+                <>
+                  <p>
+                    iPhone/iPad: open in Safari, kies Delen en daarna Zet op
+                    beginscherm.
+                  </p>
+                  <p>
+                    Android: open het Chrome-menu en kies App installeren of Toevoegen
+                    aan startscherm.
+                  </p>
+                </>
+              )}
+            </div>
+          </div>
         </Modal>
       ) : null}
     </div>

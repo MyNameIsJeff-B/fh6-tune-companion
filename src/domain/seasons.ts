@@ -9,23 +9,23 @@ export interface SeasonProfile {
 export const SEASONS: SeasonProfile[] = [
   {
     id: "Spring",
-    conditions: "Mild and changeable, with Sakura scenery and possible wet roads.",
-    guidance: "Keep wet-weather capability in reserve; do not assume every event is wet.",
+    conditions: "Mild en wisselvallig, met mogelijke natte wegen.",
+    guidance: "Houd wet-weather grip achter de hand; niet ieder Spring-event is nat.",
   },
   {
     id: "Summer",
-    conditions: "Hot conditions increase the chance of sustained tire heat.",
-    guidance: "Use the dry baseline, then watch tire temperature on longer runs.",
+    conditions: "Warm weer vergroot de kans op langdurig hoge tire temperatures.",
+    guidance: "Gebruik de droge baseline en controleer tire temperatures tijdens langere runs.",
   },
   {
     id: "Autumn",
-    conditions: "Cooler and variable, so dry grip and wet readiness both matter.",
-    guidance: "Prefer a versatile compound when an event can turn wet.",
+    conditions: "Koeler en wisselvallig, waardoor dry grip en wet-weather grip beide tellen.",
+    guidance: "Kies een veelzijdige compound wanneer een Autumn-event nat kan worden.",
   },
   {
     id: "Winter",
-    conditions: "Cold conditions with snow in winter-specific events and areas.",
-    guidance: "Select Snow surface only when the event actually contains snow or ice.",
+    conditions: "Koude omstandigheden verlagen tire temperatures, ook op droog asfalt.",
+    guidance: "Reken de eerste ronden op minder grip en langere braking distances. Een compound die op temperatuur komt kan sneller zijn; kies Snow alleen bij sneeuw of ijs.",
   },
 ];
 

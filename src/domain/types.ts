@@ -48,7 +48,7 @@ export interface BuildCapabilities {
   damping: boolean;
   aero: boolean;
   brakes: boolean;
-  differential: boolean;
+  differential: boolean | "none" | "accel" | "full";
 }
 
 export interface SpringSliderRange {
@@ -82,6 +82,7 @@ export interface TuneInput {
   maxTorque: number;
   topSpeed: number;
   gears: number;
+  ev?: boolean;
   includeGearing: boolean;
   hasAero: boolean;
   aeroFront: number;
@@ -113,6 +114,18 @@ export interface TuneSection {
   unavailableReason?: string;
 }
 
+export type InputDevice = "Controller" | "Wheel" | "Keyboard";
+export type AssistPreset = "Off" | "ABS" | "ABS + TCS" | "Custom";
+
+export interface TestRunContext {
+  location: string;
+  cleanLaps: number;
+  inputDevice: InputDevice;
+  assists: AssistPreset;
+  notes?: string;
+  observedAt: string;
+}
+
 export interface TuneResult {
   id: string;
   createdAt: string;
@@ -126,6 +139,7 @@ export interface TuneResult {
   corrections: string[];
   parentRevisionId?: string;
   revisionReason?: string;
+  testRun?: TestRunContext;
 }
 
 export type DiagnosisId =
