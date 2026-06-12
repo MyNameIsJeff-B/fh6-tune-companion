@@ -22,11 +22,14 @@ const normaliseModel = (value: string, make: string) => {
   const canonicalMake = normaliseMake(make);
   return normalise(value)
     .replace(new RegExp(`^${canonicalMake}`), "")
-    .replace(/welcomepack$/, "")
-    .replace(/forzaedition$/, "")
-    .replace(/tougeedition$/, "")
     .replace(/^motorsports/, "");
 };
+
+const normaliseLooseModel = (value: string, make: string) =>
+  normaliseModel(value, make)
+    .replace(/welcomepack$/, "")
+    .replace(/forzaedition$/, "")
+    .replace(/tougeedition$/, "");
 
 export async function loadBuildProfiles(): Promise<BuildCarProfile[]> {
   if (cache) return cache;
@@ -70,6 +73,13 @@ export function findBuildProfile(
     );
   });
   if (contained.length === 1) return contained[0];
+
+  const looseModel = normaliseLooseModel(input.model, input.make);
+  const loose = sameYearAndMake.filter(
+    (profile) =>
+      normaliseLooseModel(profile.model, profile.make) === looseModel,
+  );
+  if (loose.length === 1) return loose[0];
 
   const numericYear = Number(input.year);
   if (Number.isFinite(numericYear)) {

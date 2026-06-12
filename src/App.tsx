@@ -406,7 +406,7 @@ function App() {
                     <b>{car.cls || "?"}</b>
                     <small>
                       {car.drive ??
-                        (car.dataStatus === "identity-only"
+                        (car.dataStatus !== "technical"
                           ? "Check in-game"
                           : "?")}
                     </small>

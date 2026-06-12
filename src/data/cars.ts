@@ -33,7 +33,9 @@ export async function loadCars(): Promise<CarRecord[]> {
     frontWeight: Number(car.frontWeight ?? car.weightDist ?? 0) || undefined,
     ev: Boolean(car.ev),
     dataStatus:
-      car.dataStatus === "identity-only" ? "identity-only" : "technical",
+      car.dataStatus === "identity-only" || car.dataStatus === "official"
+        ? car.dataStatus
+        : "technical",
     provenance: Array.isArray(car.provenance)
       ? car.provenance.map(String)
       : undefined,

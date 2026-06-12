@@ -30,38 +30,64 @@ if (first.cars !== second.cars || first.profiles !== second.profiles) {
 }
 
 const catalog = JSON.parse(await readFile("public/data/cars.json", "utf8"));
-const baseCatalog = JSON.parse(
-  await readFile("automation/data/catalog-base.json", "utf8"),
-);
 const profiles = JSON.parse(
   await readFile("public/data/build-profiles.json", "utf8"),
 );
-if (catalog.cars.length < 600) throw new Error("Onverwachte catalogusdaling.");
-if (profiles.profiles.length < 600) throw new Error("Onverwachte profieldaling.");
+if (catalog.cars.length !== 618) {
+  throw new Error(`Catalogus moet exact 618 officiële auto's bevatten, niet ${catalog.cars.length}.`);
+}
+if (profiles.profiles.length !== 618) {
+  throw new Error(`Profielset moet exact 618 auto's bevatten, niet ${profiles.profiles.length}.`);
+}
 
-const countKeys = (cars) => {
-  const counts = new Map();
-  for (const car of cars) {
-    const key = `${car.year}|${car.make}|${car.model}`.toLowerCase();
-    counts.set(key, (counts.get(key) ?? 0) + 1);
+const normalise = (value) =>
+  String(value ?? "")
+    .toLowerCase()
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, "");
+const carKey = (car) =>
+  `${car.year}|${normalise(car.make)}|${normalise(car.model)}`;
+const keys = new Set();
+for (const car of catalog.cars) {
+  const key = carKey(car);
+  if (keys.has(key)) throw new Error(`Dubbele auto-identiteit: ${key}`);
+  keys.add(key);
+}
+
+const caps = { D: 400, C: 500, B: 600, A: 700, S1: 800, S2: 900, R: 998 };
+const classForPi = (pi) =>
+  pi <= 400 ? "D"
+    : pi <= 500 ? "C"
+      : pi <= 600 ? "B"
+        : pi <= 700 ? "A"
+          : pi <= 800 ? "S1"
+            : pi <= 900 ? "S2"
+              : "R";
+for (const car of catalog.cars) {
+  const key = carKey(car);
+  if (!caps[car.cls]) throw new Error(`Onbekende klasse voor ${key}: ${car.cls}`);
+  if (!car.pi || car.pi < 100 || car.pi > 998) {
+    throw new Error(`Ongeldige officiële PI voor ${key}: ${car.pi}`);
   }
-  return counts;
-};
-const baseCounts = countKeys(baseCatalog.cars);
-const generatedCounts = countKeys(catalog.cars);
-for (const [key, count] of generatedCounts) {
-  if (count > (baseCounts.get(key) ?? 0)) {
-    throw new Error(`Nieuwe dubbele auto-identiteit: ${key}`);
+  if (classForPi(car.pi) !== car.cls) {
+    throw new Error(`Klasse/PI-conflict voor ${key}: ${car.cls} ${car.pi}`);
+  }
+  const hasTuneLab = car.provenance?.includes("tunelab");
+  if (hasTuneLab !== (car.dataStatus === "technical")) {
+    throw new Error(`Bron/status-conflict voor ${key}: ${car.dataStatus}`);
   }
 }
 
-for (const car of catalog.cars) {
-  const key = `${car.year}|${car.make}|${car.model}`.toLowerCase();
-  if (
-    car.dataStatus === "identity-only" &&
-    (car.drive || car.pi || car.weight)
-  ) {
-    throw new Error(`Identity-only auto bevat onbevestigde techniek: ${key}`);
+const catalogByKey = new Map(catalog.cars.map((car) => [carKey(car), car]));
+for (const profile of profiles.profiles) {
+  const car = catalogByKey.get(carKey(profile));
+  if (!car) throw new Error(`Profiel zonder officiële auto: ${carKey(profile)}`);
+  if (profile.stockClass !== car.cls || profile.stockPi !== car.pi) {
+    throw new Error(
+      `Profiel/cataloog-conflict voor ${carKey(profile)}: ` +
+      `${profile.stockClass} ${profile.stockPi} versus ${car.cls} ${car.pi}`,
+    );
   }
 }
 

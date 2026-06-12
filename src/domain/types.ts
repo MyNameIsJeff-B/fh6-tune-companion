@@ -37,7 +37,7 @@ export interface CarRecord {
   weightUnit?: "lbs" | "kg";
   frontWeight?: number;
   ev?: boolean;
-  dataStatus?: "technical" | "identity-only";
+  dataStatus?: "technical" | "official" | "identity-only";
   provenance?: string[];
 }
 

@@ -4,7 +4,7 @@ Laatst bijgewerkt: 12 juni 2026
 
 ## Huidige status
 
-FH6 Tune Companion `0.8.2` is een werkende mobiele PWA met:
+FH6 Tune Companion `0.8.3` is een werkende mobiele PWA met:
 
 - een reproduceerbare bronlaag onder `automation/data`;
 - een wekelijkse GitHub Actions-bronbewaker met `data-update`,
@@ -24,6 +24,9 @@ FH6 Tune Companion `0.8.2` is een werkende mobiele PWA met:
 - actuele `R`-topklasse met migratie van oude opgeslagen `X`-builds;
 - gecorrigeerde FH6-caps `D400/C500/B600/A700/S1 800/S2 900/R998`;
 - centrale PI-naar-klasse afleiding en begrenzing van oude ongeldige builddoelen;
+- exact 618 officiële catalogusauto's zonder genormaliseerde aliasdubbelen;
+- officiële stock class/PI als bronwaarheid, met TuneLab alleen als technische aanvulling;
+- strikte special-edition profielmatching voor Welcome Pack en Forza Edition;
 - afzonderlijke Rally Tires voor Dirt en Off-Road Tires voor Cross Country;
 - seizoenskeuze voor Spring, Summer, Autumn en Winter, los van de route-ondergrond;
 - `+0,05 bar` Summer- en `-0,10 bar` Winter-correctie op tire pressure, met
@@ -80,11 +83,11 @@ Repository:
 
 | Onderdeel | Versie |
 | --- | --- |
-| App | `0.8.2` |
+| App | `0.8.3` |
 | Eigen tune-engine | `fh6-companion-0.7.0` |
 | TuneLab-baseline | `tunelab-1.7.0` |
-| Build Guide | `build-guide-0.7.0` |
-| Catalogus | `tunelab-v7+fh6-local-2026-06-10` |
+| Build Guide | `build-guide-0.7.1` |
+| Catalogus | `fh6-official-618+tunelab-technical-2026-06-12` |
 | Lokale opslag | `fh6-tune-companion:v1:tunes` |
 
 TuneLab is opnieuw geïmporteerd als MIT-baseline. De eigen correctieregels en Build
@@ -145,8 +148,9 @@ Guide staan daar los van. Zie `licenses/TUNELAB-MIT.txt` en
 - De auto-catalogus bevat geen betrouwbare volledige upgradeset per auto.
 - De 618 buildprofielen zijn afgeleide strategieprofielen. Zij bewijzen geen
   onderdeelbeschikbaarheid of PI-kosten.
-- De gebundelde catalogus bevat bronvarianten en aliassen. Betrouwbare matches
-  krijgen een autoprofiel; onzekere varianten vallen terug op generiek advies.
+- De gebundelde catalogus bevat exact de 618 officiële rosterrecords. TuneLab
+  levert alleen technische aanvulling; onzekere profielmatches vallen terug op
+  generiek advies.
 - PI-kosten, eindgewicht, gewichtsverdeling en sliderbereiken moeten in FH6 worden
   gecontroleerd.
 - Zonder bevestigde veergrenzen toont de app alleen een percentage van het
@@ -163,8 +167,8 @@ Guide staan daar los van. Zie `licenses/TUNELAB-MIT.txt` en
   stappen, ramp speed en locatiegebonden targets wachten op praktijkvalidatie.
 - Damping is nog niet gewichtsgeleid en de huidige road spring-percentages zijn
   nog niet via telemetry gevalideerd. Dit zijn de eerstvolgende fundamentele fixes.
-- De PI-class caps en precieze R-class-definitie spreken in openbare bronnen
-  elkaar tegen en wachten op één in-game verificatie.
+- De PI-class caps en R-range zijn via de officiële carlist vastgesteld op
+  `D400/C500/B600/A700/S1 800/S2 900/R998`.
 - Er is geen account, synchronisatie tussen apparaten of backend.
 - Tunes op de desktop en telefoon zijn daarom aparte lokale collecties; JSON is de
   huidige overdrachtsmethode.
@@ -172,8 +176,9 @@ Guide staan daar los van. Zie `licenses/TUNELAB-MIT.txt` en
   ondersteunt. Er staan geen persoonlijke tunes of geheimen in de repository.
 - De bronbewaker is geen zoekmachine. Volledig nieuwe bronnen blijven afhankelijk
   van de afzonderlijke researchautomatisering.
-- Een identity-only auto verschijnt zonder verzonnen PI, gewicht of aandrijving;
-  de gebruiker moet die waarden in-game bevestigen.
+- Een officiële auto zonder TuneLab-match behoudt officiële klasse, PI en
+  aandrijving, maar krijgt geen verzonnen gewicht of gearing; ontbrekende
+  technische waarden moeten in-game worden bevestigd.
 
 ## PWA-incident 11 juni 2026
 
@@ -233,8 +238,8 @@ Op 11 juni 2026 voor Build Guide `0.5.0`:
 - Seizoen blijft gescheiden van eventondergrond; zomer-/winterdruk, Rain-compound,
   Winter zonder geforceerde Snow Tires en legacy-import zijn afgedekt.
 - Profielgenerator levert 618 versieerbare buildprofielen.
-- Dekkingstest koppelt 610 van 642 gebundelde catalogusregels betrouwbaar; 32
-  onzekere bronvarianten vallen terug op generiek advies.
+- Catalogus en profielset bevatten dezelfde 618 officiële identiteiten; iedere
+  stock class/PI-combinatie wordt tijdens generatie hard gevalideerd.
 - Mobiele Build Guide gecontroleerd op 390 x 844 en 320 x 844.
 - Geen horizontale overflow op 320 px en geen consolefouten.
 - Gecontroleerde flow: 1992 Mazda RX-7 Type R toont het juiste profiel; wijziging
@@ -296,7 +301,7 @@ Wacht nog op Jeffs in-game of telemetry-validatie:
 - lagere, gewichtsgeleide spring targets (A2);
 - volledige numerieke Drift- en Drag-suspension/brake-branchcorrecties;
 - promotie van Mechanical/Aero Balance van verificatietip naar rekenregel;
-- PI-class caps, R-class-definitie en rear toe-in sign voor diagnose.
+- rear toe-in sign voor diagnose.
 
 ## Eerstvolgende productstap
 

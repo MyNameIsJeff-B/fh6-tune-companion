@@ -47,60 +47,88 @@ const normalise = (value) =>
     .replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, "");
 const carKey = (car) => `${car.year}|${normalise(car.make)}|${normalise(car.model)}`;
 
-const base = JSON.parse(await readFile(path.join(dataRoot, "catalog-base.json"), "utf8"));
 const tunelab = JSON.parse(await readFile(path.join(dataRoot, "tunelab-cars.json"), "utf8"));
-const tunelabByKey = new Map(tunelab.cars.map((car) => [carKey(car), car]));
-const cars = base.cars.map((car) => {
-  const upstream = tunelabByKey.get(carKey(car));
-  if (!upstream) return car;
-  const promoteIdentityOnly =
-    car.dataStatus === "identity-only" &&
-    ["FWD", "RWD", "AWD"].includes(upstream.drive) &&
-    Boolean(upstream.cls);
-  if (car.dataStatus === "identity-only" && !promoteIdentityOnly) return car;
+const rows = parseCsv(
+  (await readFile(path.join(dataRoot, "build-recommendations.csv"), "utf8"))
+    .replace(/^\uFEFF/, ""),
+);
+const escapeRegExp = (value) =>
+  value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+const officialModel = (row) =>
+  fixMojibake(row.car_name).replace(
+    new RegExp(
+      `^${escapeRegExp(row.year)}\\s+${escapeRegExp(row.make)}\\s+`,
+    ),
+    "",
+  );
+const technicalScore = (candidate, official) => {
+  let score = 0;
+  if (normalise(candidate.make) === normalise(official.make)) score += 20;
+  if (normalise(candidate.model) === normalise(official.model)) score += 30;
+  if (candidate.cls === official.cls) score += 10;
+  if (Number(candidate.pi) === official.pi) score += 20;
+  if (candidate.drive === official.drive) score += 8;
+  if (Number(candidate.weight) > 0) score += 4;
+  if (candidate.fd !== undefined) score += 2;
+  if (candidate.gears !== undefined) score += 2;
+  return score;
+};
+const technicalCandidates = (official) =>
+  tunelab.cars
+    .filter(
+      (candidate) =>
+        String(candidate.year) === official.year &&
+        normalise(candidate.model) === normalise(official.model),
+    )
+    .sort(
+      (left, right) =>
+        technicalScore(right, official) - technicalScore(left, official),
+    );
+const cars = rows.map((row) => {
+  const official = {
+    make: fixMojibake(row.make),
+    model: officialModel(row),
+    year: fixMojibake(row.year),
+    drive: fixMojibake(row.drivetrain_stock),
+    cls: fixMojibake(row.stock_class),
+    pi: Number(row.stock_pi) || 0,
+  };
+  const upstream = technicalCandidates(official)[0];
+  const drive = ["FWD", "RWD", "AWD"].includes(official.drive)
+    ? official.drive
+    : upstream?.drive;
   return {
-    ...car,
-    drive: upstream.drive ?? car.drive,
-    cls: upstream.cls ?? car.cls,
-    weight: upstream.weight ?? car.weight,
-    ev: upstream.ev ?? car.ev,
-    pi: upstream.pi ?? car.pi,
-    ...(upstream.fd === undefined ? {} : { fd: upstream.fd }),
-    ...(upstream.gears === undefined ? {} : { gears: upstream.gears }),
-    ...(promoteIdentityOnly
-      ? {
-          dataStatus: "technical",
-          provenance: [
-            ...new Set([...(car.provenance ?? []), "tunelab"]),
-          ],
-        }
-      : {}),
+    make: official.make,
+    model: official.model,
+    year: official.year,
+    drive,
+    cls: official.cls,
+    weight: Number(upstream?.weight) || 0,
+    ev: Boolean(upstream?.ev),
+    pi: official.pi,
+    ...(upstream?.fd === undefined ? {} : { fd: upstream.fd }),
+    ...(upstream?.gears === undefined ? {} : { gears: upstream.gears }),
+    dataStatus: upstream ? "technical" : "official",
+    provenance: upstream ? ["official", "tunelab"] : ["official"],
   };
 });
 const catalog = {
-  version: Number(base.version ?? 1),
-  updated: base.updated,
-  generated: base.updated,
-  extractorVersion: 1,
+  version: 8,
+  updated: "2026-06-12",
+  generated: "2026-06-12",
+  extractorVersion: 2,
   sources: {
-    identity: "automation/data/catalog-base.json",
+    identity: "automation/data/build-recommendations.csv (official FH6 roster)",
     technical: `TuneLab ${tunelab.version ?? "unknown"} (${tunelab.updated ?? "unknown"})`,
   },
   cars,
 };
 await writeFile(path.join(publicRoot, "cars.json"), `${JSON.stringify(catalog)}\n`);
 
-const rows = parseCsv(
-  (await readFile(path.join(dataRoot, "build-recommendations.csv"), "utf8"))
-    .replace(/^\uFEFF/, ""),
-);
 const profiles = rows.map((row) => ({
   year: fixMojibake(row.year),
   make: fixMojibake(row.make),
-  model: fixMojibake(row.car_name).replace(
-    new RegExp(`^${row.year.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\s+${row.make.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\s+`),
-    "",
-  ),
+  model: officialModel(row),
   carType: fixMojibake(row.car_type),
   stockClass: fixMojibake(row.stock_class),
   stockPi: Number(row.stock_pi) || 0,

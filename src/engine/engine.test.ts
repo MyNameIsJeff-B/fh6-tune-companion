@@ -13,6 +13,29 @@ import {
 } from "../build-guide/engine";
 
 describe("tuning engine", () => {
+  it("does not numerically scale tune formulas with PI inside one class", () => {
+    const lowPi = calculateImproved({
+      ...DEFAULT_INPUT,
+      carClass: "B",
+      pi: 501,
+    });
+    const highPi = calculateImproved({
+      ...DEFAULT_INPUT,
+      carClass: "B",
+      pi: 600,
+    });
+    expect(
+      lowPi.sections.map((section) => ({
+        id: section.id,
+        values: section.values.map((item) => [item.key, item.value]),
+      })),
+    ).toEqual(
+      highPi.sections.map((section) => ({
+        id: section.id,
+        values: section.values.map((item) => [item.key, item.value]),
+      })),
+    );
+  });
   it.each(["FWD", "RWD", "AWD"] satisfies DriveType[])(
     "calculates deterministic %s output",
     (driveType) => {

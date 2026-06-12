@@ -55,6 +55,30 @@ describe("build profiles", () => {
     ).toBe(aliased);
   });
 
+  it("keeps a special edition separate when both profiles exist", () => {
+    const standard = {
+      ...profile,
+      year: "2021",
+      make: "BMW",
+      model: "M4 Competition Coupé",
+      stockClass: "A",
+      stockPi: 666,
+    };
+    const welcomePack = {
+      ...standard,
+      model: "M4 Competition Coupé Welcome Pack",
+      stockClass: "S1",
+      stockPi: 800,
+    };
+    expect(
+      findBuildProfile([standard, welcomePack], {
+        year: "2021",
+        make: "BMW",
+        model: "M4 Competition Coupe Welcome Pack",
+      }),
+    ).toBe(welcomePack);
+  });
+
   it("matches an otherwise identical model one source-year apart", () => {
     const adjacent = { ...profile, year: "1984", model: "Sport quattro" };
     expect(

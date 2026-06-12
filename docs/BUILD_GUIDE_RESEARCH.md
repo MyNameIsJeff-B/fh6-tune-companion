@@ -2,8 +2,8 @@
 
 Laatst gecontroleerd: 12 juni 2026
 
-PI-klassecorrectie en PR Stunt-laag verwerkt in appversie `0.8.2`,
-tune-engine `fh6-companion-0.7.0` en Build Guide `build-guide-0.7.0`.
+PI-ketenherstel en PR Stunt-laag verwerkt in appversie `0.8.3`,
+tune-engine `fh6-companion-0.7.0` en Build Guide `build-guide-0.7.1`.
 
 ## Productbesluit
 
@@ -17,6 +17,18 @@ FH6 gebruikt na de klasseherindeling de caps `D400`, `C500`, `B600`, `A700`,
 officiële carlist: onder andere A 700/S1 701, S1 800/S2 803 en S2 900/R 913
 komen als aangrenzende voorbeelden voor. De app gebruikt deze grenzen centraal
 voor doel-PI, handmatige klasseafleiding en migratie van oude ongeldige doelen.
+
+De volledige formule-audit bevestigt dat de actieve tune-engine PI niet als
+numerieke factor gebruikt voor tire pressure, gearing, alignment, ARB, damping,
+brakes of differential. De enige klasse-afhankelijke tunekeuze is het
+spring-sliderpercentage per prestatieniveau. Correcte `carClass`-invoer is
+daarvoor essentieel en wordt nu door de catalogusvalidator afgedwongen.
+
+De appcatalogus wordt voortaan opgebouwd uit exact 618 officiële FH6-records.
+TuneLab vult alleen technische velden zoals weight en gearing aan. Officiële
+stock class en PI blijven leidend. Genormaliseerde aliasdubbelen zijn verwijderd
+en speciale edities worden niet meer stilzwijgend aan het profiel van de
+standaardauto gekoppeld.
 
 De profielset wordt reproduceerbaar gegenereerd uit
 `data/derived/car_build_recommendations.csv` en bevat 618 profielen. Zij combineert
@@ -209,8 +221,8 @@ expliciete waarschuwing.
 - Geen commerciële database of preset is gekopieerd.
 - Geen review of marketingclaim wordt als bewijs voor een exacte formule gebruikt.
 - Geen AI-gegenereerde upgradebeschikbaarheid wordt als catalogusfeit opgeslagen.
-- De betwiste FH6 PI-caps en de definitie van R-class blijven ongewijzigd totdat
-  Jeff de class badges in-game heeft bevestigd.
+- De FH6 PI-caps zijn bevestigd via de officiële carlist en centraal vastgelegd;
+  oude FH5-grenzen worden niet meer geaccepteerd als builddoel.
 - De oude Motorsport-forumclaim over een 10× fout in metrische veerweergave geldt
   niet als bewezen FH6-feit. Ingevoerde sliderwaarden worden daarom letterlijk als
   gamewaarden behandeld en niet fysisch omgerekend.
