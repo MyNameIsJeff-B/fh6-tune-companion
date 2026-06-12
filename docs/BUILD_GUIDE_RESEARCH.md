@@ -2,8 +2,8 @@
 
 Laatst gecontroleerd: 12 juni 2026
 
-PI-ketenherstel en PR Stunt-laag verwerkt in appversie `0.8.3`,
-tune-engine `fh6-companion-0.7.0` en Build Guide `build-guide-0.7.1`.
+PI-ketenherstel en PR Stunt-laag verwerkt in appversie `0.8.4`,
+tune-engine `fh6-companion-0.7.0` en Build Guide `build-guide-0.7.2`.
 
 ## Productbesluit
 
@@ -25,10 +25,12 @@ spring-sliderpercentage per prestatieniveau. Correcte `carClass`-invoer is
 daarvoor essentieel en wordt nu door de catalogusvalidator afgedwongen.
 
 De appcatalogus wordt voortaan opgebouwd uit exact 618 officiële FH6-records.
-TuneLab vult alleen technische velden zoals weight en gearing aan. Officiële
-stock class en PI blijven leidend. Genormaliseerde aliasdubbelen zijn verwijderd
-en speciale edities worden niet meer stilzwijgend aan het profiel van de
-standaardauto gekoppeld.
+FH6Hub, FH6Cars en PC Gamer dienen als onafhankelijke rosterchecks. Technische
+velden blijven optioneel en bewaren hun bron per veld; de huidige open databron
+is TuneLab v7, met oudere fuzzy matches alleen als expliciet gelabelde
+drivetrainfallback. Officiële stock class en PI blijven leidend. Genormaliseerde
+aliasdubbelen zijn verwijderd en speciale edities worden niet meer stilzwijgend
+aan het profiel van de standaardauto gekoppeld.
 
 De profielset wordt reproduceerbaar gegenereerd uit
 `data/derived/car_build_recommendations.csv` en bevat 618 profielen. Zij combineert

@@ -22,7 +22,7 @@ import {
   targetPiForClass,
 } from "../domain/pi";
 
-export const BUILD_GUIDE_VERSION = "build-guide-0.7.1";
+export const BUILD_GUIDE_VERSION = "build-guide-0.7.2";
 export { BUILD_CLASS_OPTIONS, CLASS_CAPS };
 
 const source = ["forzatune-guide", "quicktune-guide", "optn", "in-game"];

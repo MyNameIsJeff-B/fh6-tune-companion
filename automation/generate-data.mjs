@@ -48,6 +48,12 @@ const normalise = (value) =>
 const carKey = (car) => `${car.year}|${normalise(car.make)}|${normalise(car.model)}`;
 
 const tunelab = JSON.parse(await readFile(path.join(dataRoot, "tunelab-cars.json"), "utf8"));
+const technicalOverrides = JSON.parse(
+  await readFile(path.join(dataRoot, "technical-overrides.json"), "utf8"),
+);
+const overridesByKey = new Map(
+  technicalOverrides.overrides.map((override) => [carKey(override), override]),
+);
 const rows = parseCsv(
   (await readFile(path.join(dataRoot, "build-recommendations.csv"), "utf8"))
     .replace(/^\uFEFF/, ""),
@@ -67,7 +73,7 @@ const technicalScore = (candidate, official) => {
   if (normalise(candidate.model) === normalise(official.model)) score += 30;
   if (candidate.cls === official.cls) score += 10;
   if (Number(candidate.pi) === official.pi) score += 20;
-  if (candidate.drive === official.drive) score += 8;
+  if (candidate.drive === official.fallbackDrive) score += 8;
   if (Number(candidate.weight) > 0) score += 4;
   if (candidate.fd !== undefined) score += 2;
   if (candidate.gears !== undefined) score += 2;
@@ -85,18 +91,50 @@ const technicalCandidates = (official) =>
         technicalScore(right, official) - technicalScore(left, official),
     );
 const cars = rows.map((row) => {
+  const fallbackDrive = fixMojibake(row.drivetrain_stock);
   const official = {
     make: fixMojibake(row.make),
     model: officialModel(row),
     year: fixMojibake(row.year),
-    drive: fixMojibake(row.drivetrain_stock),
     cls: fixMojibake(row.stock_class),
     pi: Number(row.stock_pi) || 0,
+    fallbackDrive,
   };
   const upstream = technicalCandidates(official)[0];
-  const drive = ["FWD", "RWD", "AWD"].includes(official.drive)
-    ? official.drive
-    : upstream?.drive;
+  const override = overridesByKey.get(carKey(official));
+  const currentDrive = ["FWD", "RWD", "AWD"].includes(upstream?.drive)
+    ? upstream.drive
+    : undefined;
+  const legacyDrive = ["FWD", "RWD", "AWD"].includes(fallbackDrive)
+    ? fallbackDrive
+    : undefined;
+  const overrideDrive = ["FWD", "RWD", "AWD"].includes(override?.fields?.drive)
+    ? override.fields.drive
+    : undefined;
+  const drive = overrideDrive ?? currentDrive ?? legacyDrive;
+  const technicalSources = [
+    ...(overrideDrive ? [override.sourceId] : []),
+    ...(upstream ? ["tunelab-v7"] : []),
+    ...(!upstream && legacyDrive ? ["tunelab-v6-fuzzy"] : []),
+  ];
+  const fieldSources = {
+    identity: "forza-official",
+    cls: "forza-official",
+    pi: "forza-official",
+    ...(drive
+      ? {
+          drive: overrideDrive
+            ? override.sourceId
+            : currentDrive
+              ? "tunelab-v7"
+              : "tunelab-v6-fuzzy",
+        }
+      : {}),
+    ...(Number(upstream?.weight) > 0 ? { weight: "tunelab-v7" } : {}),
+    ...(upstream?.fd === undefined ? {} : { fd: "tunelab-v7" }),
+    ...(upstream?.gears === undefined ? {} : { gears: "tunelab-v7" }),
+    ...(upstream?.ev ? { ev: "tunelab-v7" } : {}),
+  };
   return {
     make: official.make,
     model: official.model,
@@ -108,18 +146,29 @@ const cars = rows.map((row) => {
     pi: official.pi,
     ...(upstream?.fd === undefined ? {} : { fd: upstream.fd }),
     ...(upstream?.gears === undefined ? {} : { gears: upstream.gears }),
-    dataStatus: upstream ? "technical" : "official",
-    provenance: upstream ? ["official", "tunelab"] : ["official"],
+    dataStatus: technicalSources.length ? "technical" : "official",
+    provenance: ["forza-official", ...technicalSources],
+    fieldSources,
   };
 });
 const catalog = {
   version: 8,
   updated: "2026-06-12",
   generated: "2026-06-12",
-  extractorVersion: 2,
+  extractorVersion: 3,
   sources: {
-    identity: "automation/data/build-recommendations.csv (official FH6 roster)",
-    technical: `TuneLab ${tunelab.version ?? "unknown"} (${tunelab.updated ?? "unknown"})`,
+    roster: "Official Forza Horizon 6 Car List (618 rows, updated 2026-05-19)",
+    rosterCrossChecks: [
+      "FH6Hub car list (checked 2026-05-21)",
+      "FH6Cars official-row mirror (checked 2026-05-22)",
+      "PC Gamer 618-car list (published 2026-05-21)",
+    ],
+    technical: {
+      current: `TuneLab ${tunelab.version ?? "unknown"} (${tunelab.updated ?? "unknown"})`,
+      fallback: "TuneLab v6 fuzzy matches from the local combined lookup",
+      overrides: "automation/data/technical-overrides.json",
+      policy: "Technical fields are optional and retain per-field provenance.",
+    },
   },
   cars,
 };
@@ -132,7 +181,12 @@ const profiles = rows.map((row) => ({
   carType: fixMojibake(row.car_type),
   stockClass: fixMojibake(row.stock_class),
   stockPi: Number(row.stock_pi) || 0,
-  stockDrive: fixMojibake(row.drivetrain_stock),
+  stockDrive: cars.find(
+    (car) =>
+      car.year === fixMojibake(row.year) &&
+      normalise(car.make) === normalise(fixMojibake(row.make)) &&
+      normalise(car.model) === normalise(officialModel(row)),
+  )?.drive,
   preset: fixMojibake(row.recommended_preset),
   roles: split(row.primary_roles).map(fixMojibake),
   order: row.upgrade_order

@@ -39,6 +39,9 @@ export interface CarRecord {
   ev?: boolean;
   dataStatus?: "technical" | "official" | "identity-only";
   provenance?: string[];
+  fieldSources?: Partial<
+    Record<"identity" | "cls" | "pi" | "drive" | "weight" | "fd" | "gears" | "ev", string>
+  >;
 }
 
 export interface BuildCapabilities {

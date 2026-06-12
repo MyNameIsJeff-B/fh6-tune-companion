@@ -39,6 +39,15 @@ export async function loadCars(): Promise<CarRecord[]> {
     provenance: Array.isArray(car.provenance)
       ? car.provenance.map(String)
       : undefined,
+    fieldSources:
+      car.fieldSources && typeof car.fieldSources === "object"
+        ? Object.fromEntries(
+            Object.entries(car.fieldSources).map(([field, source]) => [
+              field,
+              String(source),
+            ]),
+          )
+        : undefined,
   }));
   return cache;
 }

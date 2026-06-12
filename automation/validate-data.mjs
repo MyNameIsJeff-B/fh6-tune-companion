@@ -73,9 +73,29 @@ for (const car of catalog.cars) {
   if (classForPi(car.pi) !== car.cls) {
     throw new Error(`Klasse/PI-conflict voor ${key}: ${car.cls} ${car.pi}`);
   }
-  const hasTuneLab = car.provenance?.includes("tunelab");
-  if (hasTuneLab !== (car.dataStatus === "technical")) {
+  if (
+    car.fieldSources?.identity !== "forza-official" ||
+    car.fieldSources?.cls !== "forza-official" ||
+    car.fieldSources?.pi !== "forza-official"
+  ) {
+    throw new Error(`Officiële veldbron ontbreekt voor ${key}.`);
+  }
+  const technicalFields = ["drive", "weight", "fd", "gears", "ev"];
+  const hasTechnicalField = technicalFields.some(
+    (field) => car.fieldSources?.[field],
+  );
+  if (hasTechnicalField !== (car.dataStatus === "technical")) {
     throw new Error(`Bron/status-conflict voor ${key}: ${car.dataStatus}`);
+  }
+  for (const field of technicalFields) {
+    const source = car.fieldSources?.[field];
+    if (
+      source &&
+      !source.startsWith("tunelab-") &&
+      !source.startsWith("crosscheck-")
+    ) {
+      throw new Error(`Onbekende technische veldbron voor ${key}.${field}: ${source}`);
+    }
   }
 }
 
@@ -88,6 +108,23 @@ for (const profile of profiles.profiles) {
       `Profiel/cataloog-conflict voor ${carKey(profile)}: ` +
       `${profile.stockClass} ${profile.stockPi} versus ${car.cls} ${car.pi}`,
     );
+  }
+  if (profile.stockDrive !== car.drive) {
+    throw new Error(
+      `Profiel/cataloog-aandrijving verschilt voor ${carKey(profile)}: ` +
+      `${profile.stockDrive} versus ${car.drive}`,
+    );
+  }
+}
+
+const regressionCars = [
+  ["1972", "Chevrolet", "K-10 Custom", "AWD", "crosscheck-chevrolet-ck"],
+  ["2018", "Renault", "Megane R.S.", "FWD", "crosscheck-renault-megane-rs"],
+];
+for (const [year, make, model, drive, source] of regressionCars) {
+  const car = catalogByKey.get(carKey({ year, make, model }));
+  if (car?.drive !== drive || car.fieldSources?.drive !== source) {
+    throw new Error(`Technische bronregressie voor ${year} ${make} ${model}.`);
   }
 }
 

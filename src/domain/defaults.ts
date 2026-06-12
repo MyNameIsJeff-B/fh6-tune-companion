@@ -2,7 +2,7 @@ import type { BuildCapabilities, TuneInput, TuneMode } from "./types";
 
 export const ENGINE_VERSION = "fh6-companion-0.7.0";
 export const BASELINE_VERSION = "tunelab-1.7.0";
-export const CATALOG_VERSION = "fh6-official-618+tunelab-technical-2026-06-12";
+export const CATALOG_VERSION = "fh6-official-618+field-provenance-v2-2026-06-12";
 
 export const TUNE_MODES: Array<{
   id: TuneMode;

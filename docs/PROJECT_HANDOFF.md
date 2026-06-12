@@ -4,7 +4,7 @@ Laatst bijgewerkt: 12 juni 2026
 
 ## Huidige status
 
-FH6 Tune Companion `0.8.3` is een werkende mobiele PWA met:
+FH6 Tune Companion `0.8.4` is een werkende mobiele PWA met:
 
 - een reproduceerbare bronlaag onder `automation/data`;
 - een wekelijkse GitHub Actions-bronbewaker met `data-update`,
@@ -26,6 +26,8 @@ FH6 Tune Companion `0.8.3` is een werkende mobiele PWA met:
 - centrale PI-naar-klasse afleiding en begrenzing van oude ongeldige builddoelen;
 - exact 618 officiële catalogusauto's zonder genormaliseerde aliasdubbelen;
 - officiële stock class/PI als bronwaarheid, met TuneLab alleen als technische aanvulling;
+- veldniveau-provenance voor drive, weight, gearing en EV-status;
+- onafhankelijke rosterchecks via FH6Hub, FH6Cars en PC Gamer;
 - strikte special-edition profielmatching voor Welcome Pack en Forza Edition;
 - afzonderlijke Rally Tires voor Dirt en Off-Road Tires voor Cross Country;
 - seizoenskeuze voor Spring, Summer, Autumn en Winter, los van de route-ondergrond;
@@ -83,11 +85,11 @@ Repository:
 
 | Onderdeel | Versie |
 | --- | --- |
-| App | `0.8.3` |
+| App | `0.8.4` |
 | Eigen tune-engine | `fh6-companion-0.7.0` |
 | TuneLab-baseline | `tunelab-1.7.0` |
-| Build Guide | `build-guide-0.7.1` |
-| Catalogus | `fh6-official-618+tunelab-technical-2026-06-12` |
+| Build Guide | `build-guide-0.7.2` |
+| Catalogus | `fh6-official-618+field-provenance-v2-2026-06-12` |
 | Lokale opslag | `fh6-tune-companion:v1:tunes` |
 
 TuneLab is opnieuw geïmporteerd als MIT-baseline. De eigen correctieregels en Build

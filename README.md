@@ -67,8 +67,8 @@ databases of gesloten formules.
 
 - Baseline: TuneLab `1.7.0`, MIT-gelicentieerd.
 - Zichtbaar advies: `fh6-companion-0.7.0`.
-- Build Guide: `build-guide-0.7.1`.
-- Catalogus: 618 officiële FH6-records; TuneLab vult alleen beschikbare technische velden aan.
+- Build Guide: `build-guide-0.7.2`.
+- Catalogus: 618 officiële FH6-records, onafhankelijke rosterchecks en technische velden met bron per veld.
 - Tunes worden lokaal opgeslagen met engine- en catalogusversie.
 
 De app is niet gelieerd aan Microsoft, Xbox, Turn 10 of Playground Games.

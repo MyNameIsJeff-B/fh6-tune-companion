@@ -1,0 +1,28 @@
+{
+  "version": 1,
+  "updated": "2026-06-12",
+  "overrides": [
+    {
+      "year": "1972",
+      "make": "Chevrolet",
+      "model": "K-10 Custom",
+      "fields": {
+        "drive": "AWD"
+      },
+      "sourceId": "crosscheck-chevrolet-ck",
+      "sourceUrl": "https://en.wikipedia.org/wiki/Chevrolet_C/K_(second_generation)",
+      "reason": "The K-series designation is the four-wheel-drive C/K model; the imported RWD value conflicts with the vehicle identity."
+    },
+    {
+      "year": "2018",
+      "make": "Renault",
+      "model": "Megane R.S.",
+      "fields": {
+        "drive": "FWD"
+      },
+      "sourceId": "crosscheck-renault-megane-rs",
+      "sourceUrl": "https://en.wikipedia.org/wiki/Renault_M%C3%A9gane_RS",
+      "reason": "The road-going fourth-generation Megane R.S. is front-wheel drive; the RWD layout belongs to the separate Megane Trophy race car."
+    }
+  ]
+}
