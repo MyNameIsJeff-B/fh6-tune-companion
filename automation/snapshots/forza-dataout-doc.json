@@ -1,0 +1,26 @@
+{
+  "sourceId": "forza-dataout-doc",
+  "extractorVersion": 1,
+  "checkedAt": "2026-07-13T09:48:27.516Z",
+  "hash": "26c4c2e9b33a76e59ef96e272892cac2b70ab88d79818f8bec3ebe12b01404d3",
+  "content": {
+    "digest": "11fd9e4b6e994fb974b789efd0c8f776f039ba9bb31568480ce2cca784a491b9",
+    "pages": [
+      {
+        "digest": "11fd9e4b6e994fb974b789efd0c8f776f039ba9bb31568480ce2cca784a491b9",
+        "headings": [
+          "Articles in this section",
+          "Forza Horizon 6 \"Data Out\" Documentation",
+          "Overview",
+          "Configuration",
+          "Output Structure",
+          "Type Notes",
+          "Packet Format",
+          "Notes",
+          "Related articles"
+        ],
+        "updateLines": []
+      }
+    ]
+  }
+}

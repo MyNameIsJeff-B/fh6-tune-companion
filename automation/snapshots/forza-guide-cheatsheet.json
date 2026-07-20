@@ -1,13 +1,13 @@
 {
   "sourceId": "forza-guide-cheatsheet",
   "extractorVersion": 1,
-  "checkedAt": "2026-06-12T12:22:38.531Z",
-  "hash": "404e568748a7f398b71979723677483b863127aa5f733461b718555b6dcd5cc7",
+  "checkedAt": "2026-07-20T09:34:32.464Z",
+  "hash": "15b8e624b40310b3a96300f9d3cd38f09004e14113bb8150f8be66ef1fbdb6a0",
   "content": {
-    "digest": "6b06d149c5acaf5e8e360dcaf5dc2d65580058c3648e1811995f72e564cf45d2",
+    "digest": "4cb6b3705fc1877f9b5240b0e7693d6627178ddf171a17dfc3d62f08608ceb5b",
     "pages": [
       {
-        "digest": "6b06d149c5acaf5e8e360dcaf5dc2d65580058c3648e1811995f72e564cf45d2",
+        "digest": "4cb6b3705fc1877f9b5240b0e7693d6627178ddf171a17dfc3d62f08608ceb5b",
         "headings": [
           "Forza Horizon 6 Tuning Guide",
           "Fundamentals",
@@ -35,8 +35,6 @@
           "Springs",
           "Ride Height",
           "Damping",
-          "How to Set Dampers",
-          "Min Front Bump by Car Type",
           "Rear Dampers",
           "Damper Behavior Reference",
           "Aero",
@@ -58,7 +56,9 @@
           "Initial Gear Ratios",
           "Fine-Tuning on the Strip",
           "Drift Tuning",
-          "Picking a Car"
+          "Picking a Car",
+          "Base Drift Tune",
+          "Why these settings"
         ],
         "updateLines": []
       }

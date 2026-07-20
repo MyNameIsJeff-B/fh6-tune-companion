@@ -1,21 +1,22 @@
 {
   "sourceId": "forzatune-horizon-guide",
   "extractorVersion": 1,
-  "checkedAt": "2026-06-12T12:22:38.531Z",
-  "hash": "a389f4dffb2b33440769629829129cf69c92a2d756776160d202ff8ae469817b",
+  "checkedAt": "2026-07-20T09:34:32.464Z",
+  "hash": "cbc992566b912fd41dc558d88c2f5de633d432041ad03401de4fc0e9aea3fe19",
   "content": {
-    "digest": "268a30495c769702fa7d68de9d1f418602a1bef72f5109aa9aebe55299a51608",
+    "digest": "1b0a44103ba7fac640efb88bdf73162ce16206bd4c4220695b06278362a551d8",
     "pages": [
       {
-        "digest": "519c260dc34b8903e31f440e5da149da445894961a11cc4b64d85043613294e8",
+        "digest": "dd254b8662d15d0b672c97cc339397560c6f2346057ce76b58b8a6b981d8f1ae",
         "headings": [
           "The Fully Updated Forza Tuning Guide",
           "Introduction",
           "Table of Contents",
           "Tires: How to Choose the Best Pressure and Compound",
           "Picking the Right Compounds",
-          "How to Find the Best Tire Pressure for Forza Horizon 6 and Earlier",
+          "How to Find the Best Tire Pressure for Forza Horizon 6",
           "How to Find the Best Tire Pressure in Forza Motorsport (2023)",
+          "How to Find the Best Tire Pressure for Forza Horizon 5 and Earlier",
           "Summary of Tire Tuning",
           "Camber: Why and How to Make Adjustments",
           "Why Tune Camber?",
@@ -57,8 +58,7 @@
           "When Adjusting Roll Center Height is Helpful",
           "How to Tune Roll Center Height",
           "Summary of Roll Center Height Adjustment",
-          "How Anti-Dive and Anti-Squat Geometry Works",
-          "When Adjusting Anti-Dive and Anti-Squat is Beneficial"
+          "How Anti-Dive and Anti-Squat Geometry Works"
         ],
         "updateLines": [
           "Note: Download the free or pro version of ForzaTune to get tire pressure recommendations, and reduce your trial and error time on tire pressure settings.",

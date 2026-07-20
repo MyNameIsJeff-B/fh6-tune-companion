@@ -1,15 +1,15 @@
 {
   "sourceId": "tunelab-releases",
   "extractorVersion": 1,
-  "checkedAt": "2026-06-12T12:22:38.531Z",
-  "hash": "c5f62d48e2561fa5576394163d78d4e3691567a7ce1b1851617365966133fff7",
+  "checkedAt": "2026-07-20T09:34:32.464Z",
+  "hash": "db926683b0bd95fb723a829a76e84b730f911cccfebc9b2c6ae34860c3103c64",
   "content": {
-    "commit": "8bd622e5444940ff6054cf801b8c0b0bfb00b8a4",
-    "publishedAt": "2026-06-04T15:53:09Z",
-    "name": "cars.json v7 — stock gear ratios + weight data for 526 cars",
-    "dataVersion": 7,
-    "dataUpdated": "2026-06-03",
-    "carCount": 642,
-    "dataHash": "a2f25274d537cdf344bcb45bee367e148dda0517764ae2ffbe283bc13352401f"
+    "commit": "3766b36699fa8510e1ef10b4a4ce58a12f43994b",
+    "publishedAt": "2026-06-26T17:46:56Z",
+    "name": "Update cars.json\n\nFormatting; removed duplicate",
+    "dataVersion": 3,
+    "dataUpdated": "2026-06-26",
+    "carCount": 644,
+    "dataHash": "f65e3ffdb388e0d0dbc895b85be2ba1030c992c3ff0ecc02a8fc1ed126d2277f"
   }
 }
