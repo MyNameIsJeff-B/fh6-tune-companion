@@ -1,6 +1,6 @@
 # Build Guide Research
 
-Laatst gecontroleerd: 12 juni 2026
+Laatst gecontroleerd: 15 juni 2026
 
 PI-ketenherstel en PR Stunt-laag verwerkt in appversie `0.8.4`,
 tune-engine `fh6-companion-0.7.0` en Build Guide `build-guide-0.7.2`.
@@ -150,13 +150,19 @@ expliciete waarschuwing.
 - fh6wiki ondersteunt voor landingsproblemen de volgorde: eerst bump verzachten,
   daarna rebound licht verlagen.
 - Game8 ondersteunt onafhankelijk een Aero Balance-startpunt rond `0,45`.
-- [OPTN Club](https://github.com/OPTN-Club/optn.club) is gebruikt als referentie
-  voor open, controleerbare build- en tunegegevens. Een afzonderlijke FH6-guide
-  is nog niet rechtstreeks opgehaald en blijft daarom een onderhoudspunt.
+- [OPTN Club](https://github.com/OPTN-Club/optn.club) levert sinds mei 2026 een
+  open FH6 build- en tuneformatter, inclusief `Motor and Battery`. De publieke
+  repository bevat geen afzonderlijke FH6 tuning guide of Tuning Academy-
+  inhoud en geldt daarom niet als formulebron. De formatter toont bovendien
+  naast `R 998` nog `X 999`; dat is in conflict met de officiele carlist en
+  Jeffs V2-verificatie en wordt niet overgenomen.
 - De FH6 `forza.guide` Tuning Cheat Sheet is de primaire open bron voor
   sliderposities, bump/rebound-verhouding, gearing-workflow en Mechanical Balance.
   De app gebruikt nu maximaal `50%` bump ten opzichte van rebound; de volledige
   gewichtsgeleide damping- en springmodellen wachten op telemetry-validatie.
+  De later toegevoegde Drift-sectie volgt de soft-soft D5-richting, maar
+  publiceert geen controleerbare bronlijst. Zij telt daarom nog niet als
+  onafhankelijke bevestiging van mmogah of HokiHoshi.
 - Forumthread `832103`, *FH6: The Physics of Tuning*, is als competitief
   community-signaal bewaard. Claims over circa `1,1 bar` tire pressure en andere
   exploit-meta worden alleen gelabeld getoond en niet als standaardwaarde gebruikt.
